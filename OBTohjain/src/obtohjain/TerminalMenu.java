@@ -43,6 +43,10 @@ public class TerminalMenu {
         }
         return 2;
     }
+
+    public Terminal[] getTerminals() {
+        return terminals;
+    }
     
     // Get active terminals
     public Terminal[] getActiveTerminals(){
