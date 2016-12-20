@@ -1,6 +1,7 @@
 package obtohjain;
 
 import java.io.File;
+import java.net.DatagramSocket;
 
 /**
  *
@@ -9,16 +10,16 @@ import java.io.File;
 public class Controller {
     // Mikko: this was not used so I commented it out.
     //private Terminal[] terminals;
-    private Terminal[] activeTerminals;
+    //private Terminal[] activeTerminals;
     private TerminalMenu terminalMenu;
     private Connection connection;
     private Authentication authentication;
     private MicReader micReader=null;
-    private BroadcastMenu broadcastMenu=null;
+    //private Broadcast broadcastMenu=null;
     private String username;
     private File currentFile=null;
     private boolean micTaken=false;
-    private boolean udpTaken=false;
+    //private boolean udpTaken=false;
     private TrackMenu trackMenu=null;
 
     public Controller() {
@@ -48,49 +49,62 @@ public class Controller {
     }
     
     // Change volume of active terminals
-    public void changeVolume(int volume){
-        terminalMenu.changeVolume(connection,volume);
+    public void changeVolume(int volume, int[] ids){
+        terminalMenu.changeVolume(connection,volume,ids);
         terminalMenu.readNewTerminalInfo(connection);
     }
     
     // Change terminal to active
-    public void setChangeActiveState(int id){
+    /*public void setChangeActiveState(int id){
         terminalMenu.changeTerminalActiveState(id);
-    }
+    }*/
     
     // Get track information from terminals
-    public void getTerminalsTracks(){
+    public void getTerminalsTracks(int[] ids){
         if(trackMenu == null){
             trackMenu = new TrackMenu();
         }
-        activeTerminals = terminalMenu.getActiveTerminals();
+        /*activeTerminals = terminalMenu.getActiveTerminals();
         for (Terminal activeTerminal : activeTerminals) {
             trackMenu.getTrackListFromTerminals(connection, activeTerminal.getId());
+        }*/
+        for (int i = 0; i < ids.length; i++) {
+            trackMenu.getTrackListFromTerminals(connection, ids[i]);
         }
         trackMenu.printTracks();
     }
     
-    // Play terminal track
-    public void playTrack(int id){
-        activeTerminals = terminalMenu.getActiveTerminals();
+    // Play terminal track with id 
+    // Change logic work with given ids instead of activeTerminals
+    public void playTrack(int id, int[] ids){
+        //activeTerminals = terminalMenu.getActiveTerminals();
         if (trackMenu == null) {
             trackMenu = new TrackMenu();
-            for (Terminal activeTerminal : activeTerminals) {
+            /*for (Terminal activeTerminal : activeTerminals) {
                 trackMenu.getTrackListFromTerminals(connection, activeTerminal.getId());
+            }*/
+            for (int i = 0; i < ids.length; i++) {
+                trackMenu.getTrackListFromTerminals(connection, ids[i]);
             }
         }
-        for (Terminal activeTerminal : activeTerminals) {
+        /*for (Terminal activeTerminal : activeTerminals) {
             trackMenu.playTrack(connection, id, username, activeTerminal.getId());
+        }*/
+        for (int i = 0; i < ids.length; i++) {
+            trackMenu.playTrack(connection, id, username, ids[i]);
         }
     }
     
     // Manualy stop playing selected track
-    public void stopTrack(){
+    public void stopTrack(int[] ids){
         if (trackMenu == null) {
             return;
         }
-        for (Terminal activeTerminal : activeTerminals) {
+        /*for (Terminal activeTerminal : activeTerminals) {
             trackMenu.stopTrack(connection, username, activeTerminal.getId());
+        }*/
+        for (int i = 0; i < ids.length; i++) {
+            trackMenu.stopTrack(connection, username, ids[i]);
         }
     }
     
@@ -105,14 +119,14 @@ public class Controller {
     
     
     // Broadcast sound from mic to ip speakers
-    public void broadCast(){
+    public void broadCast(int[] ids){
         // Checking if we have everything initialized and initializing if not
-        if(connection.getUdpState() == false){
+        /*if(connection.getUdpState() == false){
             connection.initializeUDPSocket();
-        }
-        if(broadcastMenu == null){
-            broadcastMenu = new BroadcastMenu();
-        }
+        }*/
+        /*if(broadcastMenu == null){
+            broadcastMenu = new Broadcast();
+        }*/
         if(micReader == null){
             micReader = new MicReader();
         }
@@ -123,27 +137,32 @@ public class Controller {
             return;
         }
         // Check if other method use udp socket
-        if(udpTaken == false){
+        /*if(udpTaken == false){
             udpTaken = true;
         }else{
             return;
-        }
+        }*/
         // Getting currently active terminals
-        activeTerminals = terminalMenu.getActiveTerminals();
+        //activeTerminals = terminalMenu.getActiveTerminals();
         try{
             micReader.readMic(41000);
-            broadcastMenu.broadCast(connection, activeTerminals, username, (int)micReader.getBroadcastFormat().getSampleRate());
+            UDPSocket udpSocket = connection.getUDPSocket();
+            if(udpSocket == null){
+                return;
+            }
+            Broadcast broadcast = new Broadcast(connection, ids, username, (int)micReader.getBroadcastFormat().getSampleRate(), udpSocket);
             terminalMenu.readNewTerminalInfo(connection);
-            broadcastMenu.sendBroadcastData(micReader, connection);
+            broadcast.sendBroadcastData(micReader);
         }catch(Exception e){
             System.out.println(e);
         }
     }
     
     // Stop broadcast on active terminals
-    public void stopBroadcast(){
+    // Find way call instance of broadcast
+    /*public void stopBroadcast(int[] ids){
         if(broadcastMenu == null){
-            broadcastMenu = new BroadcastMenu();
+            broadcastMenu = new Broadcast();
         }
         if(broadcastMenu.isBroadcastOn()==false){
             return;
@@ -152,10 +171,10 @@ public class Controller {
             micReader = new MicReader();
         }
         // Getting currently active terminals
-        activeTerminals = terminalMenu.getActiveTerminals();
+        //activeTerminals = terminalMenu.getActiveTerminals();
         micReader.stopReadMic();
-        broadcastMenu.stopBroadcast(connection, activeTerminals, username);
-    }
+        broadcastMenu.stopBroadcast(connection, ids, username);
+    }*/
     
     // Create new audio file with name (Will block everything else so need fix)
     public void createAudioFile(int sampleRate, String name){
@@ -190,7 +209,7 @@ public class Controller {
     }
     
     // Send local sound file through udp to speakers
-    public void playFile(String name){
+    public void playFile(String name, int[] ids){
         // Select file to play
         if(name != null ){
             currentFile = new File(name);
@@ -202,32 +221,36 @@ public class Controller {
             return;
         }
         // Checking if we have everything initialized and initializing if not
-        if(connection.getUdpState() == false){
+        /*if(connection.getUdpState() == false){
             connection.initializeUDPSocket();
-        }
-        if(broadcastMenu == null){
-            broadcastMenu = new BroadcastMenu();
-        }
+        }*/
+        /*if(broadcastMenu == null){
+            broadcastMenu = new Broadcast();
+        }*/
         if(micReader == null){
             micReader = new MicReader();
         }
         // Check if other method use udp socket
-        if(udpTaken == false){
+        /*if(udpTaken == false){
             udpTaken = true;
         }else{
             return;
-        }
+        }*/
         // Getting currently active terminals
-        activeTerminals = terminalMenu.getActiveTerminals();
+        //activeTerminals = terminalMenu.getActiveTerminals();
         try {
-            broadcastMenu.broadCast(connection, activeTerminals, username, micReader.getFileSampleRate(currentFile));
+            UDPSocket udpSocket = connection.getUDPSocket();
+            if(udpSocket == null){
+                return;
+            }
+            Broadcast broadcast = new Broadcast(connection, ids, username, micReader.getFileSampleRate(currentFile), udpSocket);
             try {
-                Thread.sleep(2000);
+                Thread.sleep(3000);
             } catch (InterruptedException ex) {
                 Thread.currentThread().interrupt();
             }
             //actionMenu.broadCast(connection, activeTerminals, username, 41000);
-            broadcastMenu.sendWaveSoundFileData(connection, currentFile);
+            broadcast.sendWaveSoundFileData(currentFile);
             //actionMenu.sendMp3SoundFileData(connection, currentFile);
             terminalMenu.readNewTerminalInfo(connection);
         } catch (Exception e) {

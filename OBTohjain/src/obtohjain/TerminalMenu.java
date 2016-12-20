@@ -29,7 +29,7 @@ public class TerminalMenu {
     }
     
     // For changing which terminals are used
-    public  int changeTerminalActiveState(int id){
+    /*public  int changeTerminalActiveState(int id){
         for (Terminal terminal : terminals) {
             if (id == terminal.getId()) {
                 if (terminal.isOnUse()) {
@@ -42,14 +42,14 @@ public class TerminalMenu {
             }
         }
         return 2;
-    }
+    }*/
 
     public Terminal[] getTerminals() {
         return terminals;
     }
     
     // Get active terminals
-    public Terminal[] getActiveTerminals(){
+    /*public Terminal[] getActiveTerminals(){
         Terminal[] aTerminals;
         // How many terminals are used
         int numberOfActiveTerminals = 0;
@@ -74,8 +74,8 @@ public class TerminalMenu {
                 System.out.println("aktive " + ids[i]);
             }
         }*/
-        return aTerminals;
-    }
+        /*return aTerminals;
+    }*/
     
     // For using terminal variables from other classes
     public Terminal getTerminals(int id){
@@ -97,19 +97,19 @@ public class TerminalMenu {
             System.out.println("online " + terminal.getOnlineStatus());
             System.out.println("task " + terminal.getTaskStatus());
             System.out.println("volume " + terminal.getVolume());
-            System.out.println("selected " + terminal.isOnUse());
+            //System.out.println("selected " + terminal.isOnUse());
             System.out.println("music " + musicName);
         }
     }
     
     // Change volume of terminal
-    public void changeVolume(Connection connection, int volume){
+    public void changeVolume(Connection connection, int volume, int[] ids){
         // Getting selected terminals ids;
-        int ids[]=null;
+        /*int ids[]=null;
         Terminal[] aTerminals = getActiveTerminals();
         for(int i = 0; i < aTerminals.length; i++){
             ids[i] = aTerminals[i].getId();
-        }
+        }*/
         // Command id for login
         int cmdid = 92;
         // Create byte array for volume Change
@@ -163,7 +163,7 @@ public class TerminalMenu {
         terminalCount = terminalInfo[5];
         boolean[] states = null;
         // If this isnt first time geting terminal info
-        if (terminals != null) {
+        /*if (terminals != null) {
             states = new boolean[terminals.length];
             // Saving the states of terminals
             for (int i = 0; i < terminals.length; i++) {
@@ -174,7 +174,8 @@ public class TerminalMenu {
         }else{
             // How many bytes of terminal info there are
             terminals = new Terminal[terminalCount];
-        }
+        }*/
+        terminals = new Terminal[terminalCount];
         // Variables for managing right terminal and right terminal info
         int terminalInfoLenght = 0;
         int terminalNameLenght;
@@ -189,9 +190,9 @@ public class TerminalMenu {
             Terminal t = new Terminal();
             terminals[i] = t;
             //If states exist assign states
-            if(states != null){
+            /*if(states != null){
                 terminals[i].setOnUse(states[i]);
-            }
+            }*/
             // Checking terminals online status
             terminals[i].setOnlineStatus(terminalInfo[terminalInfoLenght + 13] == 1);
             // Checking terminal id

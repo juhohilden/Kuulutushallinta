@@ -14,7 +14,7 @@ public class Terminal {
     private String name;
     private String ipAddress;
     private int taskStatus;
-    private boolean onUse;
+    //private boolean onUse;
     private Track[] trackList;
     
     public Terminal() {
@@ -25,7 +25,7 @@ public class Terminal {
         this.name = null;
         this.ipAddress = null;
         this.taskStatus = 0;
-        this.onUse = false;
+        //this.onUse = false;
         this.trackList = null;
     }
 
@@ -91,13 +91,13 @@ public class Terminal {
         this.taskStatus = taskStatus;
     }
 
-    public boolean isOnUse() {
+    /*public boolean isOnUse() {
         return onUse;
     }
 
     public void setOnUse(boolean onUse) {
         this.onUse = onUse;
-    } 
+    }*/ 
 
     public void setTracklist(Track[] trackList){
         this.trackList = trackList;

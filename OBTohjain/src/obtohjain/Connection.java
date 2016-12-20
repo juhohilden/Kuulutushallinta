@@ -14,23 +14,27 @@ import java.net.Socket;
 public class Connection {
     
     // Socket used for communicating with server
-    public Socket socket;
+    private Socket socket;
     //Streams used by client
-    public DataOutputStream out;
+    private DataOutputStream out;
     private BufferedReader in;
-    public BufferedInputStream ins; // ehkä turha
+    private BufferedInputStream ins; // ehkä turha
     // Datagramsocket for udp connection
-    public DatagramSocket udpSocket;
+    //private DatagramSocket udpSocket;
     // Static port of server
     private int port = 40000;
     // Static local port for udp connection
-    private int udpPort = 14002;
+    //private int udpPort; // cant use same udp port all the time
     // Server ip
-    public String ip;
+    private String ip;
     // InetAdress used for broadcast
-    public InetAddress bCast;
+    //private InetAddress bCast;
     // Is udp socket initialized
-    private boolean udpState;
+    //private boolean udpState;
+    // Is udp socket taken
+    //private boolean udpTaken;
+    // List of useable UDPSockets
+    private UDPSocket[] udpSockets = new UDPSocket[10];
     
     // Creating connection for controller
     public Connection(String ip){  
@@ -39,7 +43,10 @@ public class Connection {
             socket = new Socket(ip, port);
             out = new DataOutputStream(socket.getOutputStream());
             ins = new BufferedInputStream(socket.getInputStream());
-            udpState =false;
+            for(int i = 0; i < udpSockets.length; i++){
+                udpSockets[i] = new UDPSocket(14000 + i);
+            }
+            //udpState =false;
         }
         catch(Exception e){
             System.out.println(e);
@@ -56,17 +63,36 @@ public class Connection {
     }
     
     // Initialize UDP socket for broadcast
-    public void initializeUDPSocket(){
+    // Need multiple udpSockets for multiple broadcasts
+    /*public void initializeUDPSocket(){
         try{
-            udpSocket = new DatagramSocket(udpPort);
+            udpSocket = new DatagramSocket(14002);
             udpSocket.setBroadcast(true);
             //bCast = InetAddress.getByName("192.168.0.102");
             bCast = InetAddress.getByName("255.255.255.255");
-            udpState = true;
+            //udpState = true;
         }catch(Exception e){
             System.out.println(e);
         }
-    }
+    }*/
+    
+    // Create temp udp socket for udp broadcast
+    /*public DatagramSocket createUDPSocket(){
+        DatagramSocket tempUdp = null;
+        try{
+            tempUdp = new DatagramSocket(13000); // work with ports between 13000 - 15000 atleast those work
+            System.out.println("port " + tempUdp.getLocalPort());
+            tempUdp.setBroadcast(true);
+            //bCast = InetAddress.getByName("192.168.0.102");
+            bCast = InetAddress.getByName("255.255.255.255");
+            //udpState = true;
+        }catch(Exception e){
+            System.out.println(e);
+        }
+        return tempUdp;
+    }*/
+    
+    
     
     // Getter for DataOutputStream
     public DataOutputStream getDataoutputStream(){
@@ -83,15 +109,40 @@ public class Connection {
         return ins;
     }
     
-    // Getter for UDP socket
-    public DatagramSocket getDatagramSocket(){
+    // Getter for UDPSockets
+    public UDPSocket getUDPSocket(){
+        UDPSocket udpSocket = null;
+        for (UDPSocket udpSocket1 : udpSockets) {
+            if(udpSocket1.getOnUse() == false){
+               udpSocket = udpSocket1;
+               udpSocket.setOnUse();
+               break;
+            }
+        }
         return udpSocket;
     }
     
-    // Getter for local UDP port
-    public int getUDPPort(){
-        return udpPort;
+    // Free udpSocket
+    public void freeUDPSocket(UDPSocket udpSocket){
+        for (UDPSocket udpSocket1 : udpSockets) {
+            if(udpSocket1.getPort() == udpSocket.getPort()){
+               udpSocket1.free();
+               break;
+            }
+        }
     }
+    
+
+    
+    // Getter for UDP socket
+    /*public DatagramSocket getDatagramSocket(){
+        return udpSocket;
+    }*/
+    
+    // Getter for local UDP port
+    /*public int getUDPPort(){
+        return udpPort;
+    }*/
     
     // Getter for server port
     public int getPort(){
@@ -104,14 +155,14 @@ public class Connection {
     }
     
     // Get InetAddress for broadcast
-    public InetAddress getAddress(){
+    /*public InetAddress getAddress(){
         return bCast;
-    }
+    }*/
     
     // Get if udpSocket is already initialized
-    public boolean getUdpState(){
+    /*public boolean getUdpState(){
         return udpState;
-    }
+    }*/
     
     // Close socket connection
     public void endConnection(){
