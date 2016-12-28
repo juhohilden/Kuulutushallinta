@@ -22,7 +22,6 @@ public class MicReader{
     private File tempFile = new File("Temp.wav");
     private AudioFileFormat.Type fileType = AudioFileFormat.Type.WAVE;
     private AudioInputStream ais;
-    private AudioInputStream getFormat;
     private byte[] data;
     private ByteArrayOutputStream out;
     private String fileName;
@@ -156,12 +155,15 @@ public class MicReader{
     // Get sampleRate of file
     public int getFileSampleRate(File file){
         try{
-            getFormat = AudioSystem.getAudioInputStream(file);
+            AudioInputStream getFormat = AudioSystem.getAudioInputStream(file);
+            int sRate = (int)getFormat.getFormat().getSampleRate();
+            getFormat.close();
+            return sRate;
         }catch(Exception e){
             e.printStackTrace();
         }
-        int sRate = (int)getFormat.getFormat().getSampleRate();
-        return sRate;
+        
+        return -1;
     }
     
 }

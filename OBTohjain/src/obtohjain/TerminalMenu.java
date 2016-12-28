@@ -5,6 +5,9 @@
  */
 package obtohjain;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  *
  * @author Juho
@@ -12,6 +15,7 @@ package obtohjain;
 public class TerminalMenu { 
     
     // Array for all terminals and their info
+    ///!!!! Change this to List<Terminal>
     private Terminal[] terminals;
     // Array about terminal info from server
     private byte[] terminalInfo;
@@ -49,25 +53,20 @@ public class TerminalMenu {
     }
     
     // Get active terminals
+
     /*public Terminal[] getActiveTerminals(){
         Terminal[] aTerminals;
+
+    public List<Terminal> getActiveTerminals(){
+        List<Terminal> aTerminals = new ArrayList<Terminal>();
+
         // How many terminals are used
-        int numberOfActiveTerminals = 0;
         for (Terminal terminal : terminals) {
             if (terminal.isOnUse()) {
-                numberOfActiveTerminals++;
+                aTerminals.add(terminal);
             }
         }
-        aTerminals = new Terminal[numberOfActiveTerminals];
-        int i = 0;
-        int terminalPointer = 0;
-        while(i < aTerminals.length){
-            if(terminals[terminalPointer].isOnUse()){
-                aTerminals[i] = terminals[i];
-                i++;
-            }
-            terminalPointer++;
-        }
+        
         /*for(int i = 0; i < terminals.length; i++){
             if(terminals[i].isOnUse()){
                 ids[i] = terminals[i].getId();
@@ -105,11 +104,18 @@ public class TerminalMenu {
     // Change volume of terminal
     public void changeVolume(Connection connection, int volume, int[] ids){
         // Getting selected terminals ids;
+
         /*int ids[]=null;
         Terminal[] aTerminals = getActiveTerminals();
         for(int i = 0; i < aTerminals.length; i++){
             ids[i] = aTerminals[i].getId();
         }*/
+        /*
+        List<Terminal> aTerminals = getActiveTerminals();
+        for(int i = 0; i < aTerminals.size(); i++){
+            ids[i] = aTerminals.get(i).getId();
+        }*/
+
         // Command id for login
         int cmdid = 92;
         // Create byte array for volume Change
@@ -152,7 +158,8 @@ public class TerminalMenu {
         try {
             newTerminalInfoCount = connection.getBufferedInputStream().read(newTerminalInfo);
         } catch (Exception e) {
-            System.out.println(e);
+            System.err.println("ReadNewTerminalInfo:");
+            e.printStackTrace();
         }
         terminalInfo = newTerminalInfo;
         terminalInfotoTerminalArray(terminalInfo);
