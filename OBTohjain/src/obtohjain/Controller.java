@@ -39,6 +39,10 @@ public class Controller implements Broadcast.OnPagingCompleteListener {
         this.listener = listener;
     }
     
+    public void setListener(OnBroadcastComplete listener){
+        this.listener = listener;
+    }
+    
     public interface OnBroadcastComplete{
         public void onBroadcastComplete();
     }

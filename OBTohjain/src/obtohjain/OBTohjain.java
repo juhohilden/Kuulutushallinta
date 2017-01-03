@@ -3,6 +3,8 @@ package obtohjain;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -22,7 +24,10 @@ public class OBTohjain {
             System.out.println(e);
         }
         */
+        Logger logger = LoggerFactory.getLogger(OBTohjain.class);
         
+        logger.debug("Testiloggaus");
+        logger.error("Error testaus");
 
         Controller controller = new Controller();
         controller.createConnection("192.168.2.233");
@@ -52,7 +57,7 @@ public class OBTohjain {
         //controller.playFile("Bitlips-test.wav", i);
         
         List<Terminal> terminals = new ArrayList<Terminal>();
-        terminals.add(new Terminal(87));
+        //terminals.add(new Terminal(87));
         terminals.add(new Terminal(9));
         //controller.playFile("test.wav", j);
         controller.playFile("Bitlips-test.wav", terminals);
