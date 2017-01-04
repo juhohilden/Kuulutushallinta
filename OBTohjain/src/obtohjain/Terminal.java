@@ -6,6 +6,7 @@ package obtohjain;
  */
 public class Terminal {
 
+    
     private int id;
     private int volume;
     private boolean onlineStatus;
@@ -15,6 +16,7 @@ public class Terminal {
     private int taskStatus;
     //private boolean onUse;
     private Track[] trackList;
+    private String currentUser;
     
     public Terminal() {
         this.id = 0;
@@ -26,11 +28,7 @@ public class Terminal {
         this.taskStatus = 0;
         //this.onUse = false;
         this.trackList = null;
-    }
-    
-    public Terminal(int id){
-        this();
-        this.id = id;
+        this.currentUser = null;
     }
 
     public int getId() {
@@ -84,7 +82,7 @@ public class Terminal {
     }
 
     public void setIpAddress(String ipAddress) {
-        this.ipAddress = ipAddress;
+        this.ipAddress = ipAddress.substring(0, 15);
     }
 
     public int getTaskStatus() {
@@ -109,6 +107,14 @@ public class Terminal {
     
     public Track[] getTracklist(){
         return trackList;
+    }
+    
+    public void setCurrentUser(String tempTrack){
+        this.currentUser = tempTrack;
+    }
+    
+    public String getCurrentUser(){
+        return currentUser;
     }
     
 }

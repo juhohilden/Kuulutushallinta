@@ -205,15 +205,6 @@ public class TrackMenu {
         } catch (Exception e) {
             System.out.println(e);
         }
-        // Initializing array for new terminal track information
-        byte[] newTerminalInfo = new byte[1024];
-        int newTerminalInfoCount = 0;
-        // Getting the terminals tracks information from server
-        try {
-            newTerminalInfoCount = connection.getBufferedInputStream().read(newTerminalInfo);
-        } catch (Exception e) {
-            System.out.println(e);
-        }
     }
     
     
