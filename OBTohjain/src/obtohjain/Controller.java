@@ -69,12 +69,13 @@ public class Controller implements Broadcast.OnPagingCompleteListener  {
     }
     
     // Return terminals and terminals states
-    public Terminal[] getTerminals(){
+    public List<Terminal> getTerminals(){
         if(terminalMenu != null){
             return terminalMenu.getTerminals();
         }else{
+            List<Terminal> nullTerminals = new ArrayList<Terminal>();
             Terminal nullTerminal = new Terminal();
-            Terminal[] nullTerminals = {nullTerminal};
+            nullTerminals.add(nullTerminal);
             return nullTerminals;
         }        
     }
@@ -93,49 +94,40 @@ public class Controller implements Broadcast.OnPagingCompleteListener  {
     
     
     // Return terminals with ids
-    public Terminal[] getTerminal(int[] ids){
+    public List<Terminal> getTerminal(int[] ids){
         if(terminalMenu != null && ids != null && ids.length >= 1){
-            Terminal[] tempTerminals = new Terminal[ids.length];
-            for(int i = 0; i < tempTerminals.length; i++){
-                Terminal temp = terminalMenu.getTerminals(ids[i]);
-                tempTerminals[i] = temp;
+            List<Terminal> terminals = new ArrayList<Terminal>();
+            for(int i = 0; i < ids.length; i++){
+                Terminal terminal = terminalMenu.getTerminals(ids[i]);
+                terminals.add(terminal);
             }
-            return tempTerminals;
+            return terminals;
         }else{
+            List<Terminal> nullTerminals = new ArrayList<Terminal>();
             Terminal nullTerminal = new Terminal();
-            Terminal[] nullTerminals = {nullTerminal};
+            nullTerminals.add(nullTerminal);
             return nullTerminals;
         }
     }
     
     // Change volume of active terminals
-    public void changeVolume(int volume, int[] ids){
+    public void changeVolume(int volume, List<Terminal>terminals){
         if(terminalMenu == null){
             return;
         }
-        for(int i = 0; i < ids.length; i++){
+        if(terminals == null){
+           return; 
+        }
+        List<Terminal> tempTerminals = new ArrayList<Terminal>();
+        for(int i = 0; i < terminals.size(); i++){
             for(Terminal terminal : terminalMenu.getTerminals()){
-                if(ids[i] == terminal.getId() && volume == terminal.getVolume()){
-                    int[] newIds = new int[ids.length-1];
-                    int fillingNewIds =0;
-                    for(int j = 0; j < ids.length; j++){
-                        if(ids[j] != terminal.getId()){
-                            newIds[fillingNewIds] = ids[j];
-                            fillingNewIds++;
-                        }
-                    }
-                   
-                    ids = newIds;
-                    System.out.println("new ids " +ids.length);
-                    if(ids.length == 0){
-                        return;
-                    }
+                if(terminals.get(i).getId() == terminal.getId() && volume != terminal.getVolume()){
+                    tempTerminals.add(terminals.get(i));
                 }
             }
         }
-        System.out.println("test change "+volume+" "+ids.length);
-        if(ids.length >= 1){
-            terminalMenu.changeVolume(connection,volume,ids);
+        if(tempTerminals.size() >= 1){
+            terminalMenu.changeVolume(connection,volume,tempTerminals);
             terminalMenu.readNewTerminalInfo(connection);
         }
         //terminalMenu.printTerminalsInfo();
@@ -147,8 +139,11 @@ public class Controller implements Broadcast.OnPagingCompleteListener  {
     }*/
     
     // Get track information from terminals
-    public void getTerminalsTracks(int[] ids){
+    public void getTerminalsTracks(List<Terminal> terminals){
         if(terminalMenu == null){
+            return;
+        }
+        if(terminals == null){
             return;
         }
         if(trackMenu == null){
@@ -158,11 +153,11 @@ public class Controller implements Broadcast.OnPagingCompleteListener  {
         for (Terminal activeTerminal : activeTerminals) {
             trackMenu.getTrackListFromTerminals(connection, activeTerminal.getId());
         }*/
-        for (int i = 0; i < ids.length; i++) {
-            trackMenu.getTrackListFromTerminals(connection, ids[i]);
+        for (int i = 0; i < terminals.size(); i++) {
+            trackMenu.getTrackListFromTerminals(connection, terminals.get(i).getId());
         }
-        for(int i = 0; i < ids.length; i++){
-            terminalMenu.setTracklist(ids[i], trackMenu.getTracklist());
+        for(int i = 0; i < terminals.size(); i++){
+            terminalMenu.setTracklist(terminals.get(i).getId(), trackMenu.getTracklist());
         }
         // terminalInfo maybe need to be read
         //terminalMenu.printTerminalsInfo();
@@ -207,15 +202,18 @@ public class Controller implements Broadcast.OnPagingCompleteListener  {
     }
     
     // Manualy stop playing selected track
-    public void stopTrack(int[] ids){
+    public void stopTrack(List<Terminal> terminals){
         if (trackMenu == null) {
+            return;
+        }
+        if(terminals == null){
             return;
         }
         /*for (Terminal activeTerminal : activeTerminals) {
             trackMenu.stopTrack(connection, username, activeTerminal.getId());
         }*/
-        for (int i = 0; i < ids.length; i++) {
-            trackMenu.stopTrack(connection, username, ids[i]);          
+        for (int i = 0; i < terminals.size(); i++) {
+            trackMenu.stopTrack(connection, username, terminals.get(i).getId());          
         }
         // Need check if terminal is sending first
         terminalMenu.readNewTerminalInfo(connection);

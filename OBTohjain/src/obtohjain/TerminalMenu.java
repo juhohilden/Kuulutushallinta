@@ -14,7 +14,8 @@ import java.util.List;
 public class TerminalMenu { 
     
     // Array for all terminals and their info
-    private Terminal[] terminals;
+    //private Terminal[] terminals;
+    List<Terminal> terminals;
     // Array about terminal info from server
     //private String musicName;
     private byte[] terminalInfo;
@@ -24,6 +25,7 @@ public class TerminalMenu {
     public TerminalMenu(byte[] terminalInfo){
         // Saving termial info locally
         this.terminalInfo = terminalInfo;
+        terminals = new ArrayList<Terminal>();
         // How many bytes of terminal info there are
         //this.terminalInfoCount = terminalInfoCount;
         terminalInfotoTerminalArray(terminalInfo);
@@ -46,7 +48,7 @@ public class TerminalMenu {
         return 2;
     }*/
 
-    public Terminal[] getTerminals() {
+    public List<Terminal> getTerminals() {
         return terminals;
     }
     
@@ -162,7 +164,7 @@ public class TerminalMenu {
     }
     
     // Change volume of terminal
-    public void changeVolume(Connection connection, int volume, int[] ids){
+    public void changeVolume(Connection connection, int volume, List<Terminal> activeTerminals){
         // Getting selected terminals ids;
         /*int ids[]=null;
         Terminal[] aTerminals = getActiveTerminals();
@@ -172,7 +174,7 @@ public class TerminalMenu {
         // Command id for login
         int cmdid = 92;
         // Create byte array for volume Change
-        byte[] volumeChange = byteArrayFillerForVolumeChange(cmdid, ids, volume);
+        byte[] volumeChange = byteArrayFillerForVolumeChange(cmdid, activeTerminals, volume);
         // Sending array to server
         try{
             connection.getDataoutputStream().write(volumeChange, 0, volumeChange.length);
@@ -187,9 +189,9 @@ public class TerminalMenu {
     }
     
     // Fill array for terminal volume change
-    private byte[] byteArrayFillerForVolumeChange(int cmdid, int[] ids, int volume){
+    private byte[] byteArrayFillerForVolumeChange(int cmdid, List<Terminal> activeTerminals, int volume){
         // Setting the lenght for volume change
-        int volumeLenght = 13 + 4 * ids.length;
+        int volumeLenght = 13 + 4 * activeTerminals.size();
         // Creating the byte array for login
         byte[] volumeChange = new byte[volumeLenght];
         // cmdid for volume change
@@ -197,9 +199,9 @@ public class TerminalMenu {
         // Filling login byte array
         volumeChange[1] = (byte)volumeLenght;
         volumeChange[5] = (byte)volume;
-        volumeChange[9] = (byte)(ids.length * 4); // terminal count for volume change
-        for(int i = 0; i < ids.length; i++){
-            volumeChange[13 + (4 * i)] = (byte)ids[i];
+        volumeChange[9] = (byte)(activeTerminals.size() * 4); // terminal count for volume change
+        for(int i = 0; i < activeTerminals.size(); i++){
+            volumeChange[13 + (4 * i)] = (byte)activeTerminals.get(i).getId();
         }
         return volumeChange;
     }
@@ -235,7 +237,7 @@ public class TerminalMenu {
             // How many bytes of terminal info there are
             terminals = new Terminal[terminalCount];
         }*/
-        terminals = new Terminal[terminalCount];
+        //terminals = new Terminal[terminalCount];
         // Variables for managing right terminal and right terminal info
         int terminalInfoLenght = 0;
         int terminalNameLenght;
@@ -246,48 +248,55 @@ public class TerminalMenu {
         char[] ipAddress;
         char[] musicName;
         // Managing all terminals one by one from servers terminal info
-        for(int i = 0; i < terminals.length; i++){
+        for(int i = 0; i < terminalCount; i++){
             Terminal t = new Terminal();
-            terminals[i] = t;
+            //terminals[i] = t;
             //If states exist assign states
             /*if(states != null){
                 terminals[i].setOnUse(states[i]);
             }*/
             // Checking terminals online status
-            terminals[i].setOnlineStatus(terminalInfo[terminalInfoLenght + 13] == 1);
+            t.setOnlineStatus(terminalInfo[terminalInfoLenght + 13] == 1);
             // Checking terminal id
-            terminals[i].setId(terminalInfo[terminalInfoLenght + 17]);
+            t.setId(terminalInfo[terminalInfoLenght + 17]);
             // Checking terminals name
             terminalNameLenght = terminalInfo[terminalInfoLenght + 21];
             name = new char[terminalNameLenght];
             for(int j = 0; j < terminalNameLenght; j++){
                 name[j] =(char) terminalInfo[terminalInfoLenght + 25 + j];
             }
-            terminals[i].setName(String.copyValueOf(name));
+            t.setName(String.copyValueOf(name));
             // Checking mac address
             macAddressLenght = terminalInfo[terminalInfoLenght + terminalNameLenght + 25];
             macAddress = new char[macAddressLenght];
             for(int j = 0; j < macAddressLenght; j++){
                 macAddress[j] =(char) terminalInfo[terminalInfoLenght + terminalNameLenght + 29 + j];
             }
-            terminals[i].setMacAddress(String.copyValueOf(macAddress));
+            t.setMacAddress(String.copyValueOf(macAddress));
             // Checking ip address
             ipAddress = new char[32];
             for(int j = 0; j < 32; j++){
                 ipAddress[j] = (char) terminalInfo[terminalInfoLenght + terminalNameLenght + macAddressLenght + 29 + j];
             }
-            terminals[i].setIpAddress(String.copyValueOf(ipAddress));
+            t.setIpAddress(String.copyValueOf(ipAddress));
             // Checking volume
-            terminals[i].setVolume(terminalInfo[terminalInfoLenght + terminalNameLenght + macAddressLenght + 61]);
+            t.setVolume(terminalInfo[terminalInfoLenght + terminalNameLenght + macAddressLenght + 61]);
             // Checking task status
-            terminals[i].setTaskStatus(terminalInfo[terminalInfoLenght + terminalNameLenght + macAddressLenght + 69]); 
+            t.setTaskStatus(terminalInfo[terminalInfoLenght + terminalNameLenght + macAddressLenght + 69]); 
             // Checking music name
             musicNameLenght = terminalInfo[terminalInfoLenght + terminalNameLenght + macAddressLenght + 73];
             musicName = new char[musicNameLenght];
             for(int j = 0; j < musicNameLenght; j++){
                 musicName[j] =(char) terminalInfo[terminalInfoLenght + terminalNameLenght + macAddressLenght + 77 + j];
             }
-            terminals[i].setCurrentUser(String.copyValueOf(musicName));
+            t.setCurrentUser(String.copyValueOf(musicName));
+            
+            for(Terminal terminal : terminals){
+               if(t.getId() == terminal.getId()){
+                   terminals.remove(terminal);
+                   terminals.add(t);
+               } 
+            }
             //System.out.println("muusiikki  : "+this.musicName);
             // Changing terminalInfoLenght to access array for next terminal
             //System.out.println("Bittejä terminaalissa " + terminalInfo[terminalInfoLenght + 9]);
