@@ -1,16 +1,25 @@
 package obtohjain;
 
 import java.io.File;
+
 import java.net.DatagramSocket;
+
+import java.io.IOException;
+import java.util.List;
+
 
 /**
  *
  * @author Juho
  */
-public class Controller {
+public class Controller implements Broadcast.OnPagingCompleteListener {
     // Mikko: this was not used so I commented it out.
     //private Terminal[] terminals;
+
     //private Terminal[] activeTerminals;
+
+    private List<Terminal> activeTerminals;
+
     private TerminalMenu terminalMenu;
     private Connection connection;
     private Authentication authentication;
@@ -21,12 +30,25 @@ public class Controller {
     private boolean micTaken=false;
     //private boolean udpTaken=false;
     private TrackMenu trackMenu=null;
+    private OnBroadcastComplete listener;
 
     public Controller() {
     }
     
+    public Controller(OnBroadcastComplete listener){
+        this.listener = listener;
+    }
+    
+    public void setListener(OnBroadcastComplete listener){
+        this.listener = listener;
+    }
+    
+    public interface OnBroadcastComplete{
+        public void onBroadcastComplete();
+    }
+    
     // Create connection
-    public void createConnection(String ip){
+    public void createConnection(String ip) throws IOException{
         connection = new Connection(ip);
     }
     
@@ -117,15 +139,27 @@ public class Controller {
         trackMenu.printTracks();
     }
     
+    // !!!! LISTAKSI !!!!
+    public Terminal[] getTerminals(){
+        return terminalMenu.getTerminals();
+    }
+    
     
     // Broadcast sound from mic to ip speakers
-    public void broadCast(int[] ids){
+    public void broadCast(List<Terminal> terminals){
         // Checking if we have everything initialized and initializing if not
         /*if(connection.getUdpState() == false){
             connection.initializeUDPSocket();
+<<<<<<< Updated upstream
         }*/
         /*if(broadcastMenu == null){
             broadcastMenu = new Broadcast();
+        }*/
+
+        /*
+        }
+        if(broadcastMenu == null){
+            broadcastMenu = new BroadcastMenu(this);
         }*/
         if(micReader == null){
             micReader = new MicReader();
@@ -150,7 +184,7 @@ public class Controller {
             if(udpSocket == null){
                 return;
             }
-            Broadcast broadcast = new Broadcast(connection, ids, username, (int)micReader.getBroadcastFormat().getSampleRate(), udpSocket);
+            Broadcast broadcast = new Broadcast(connection, terminals, username, (int)micReader.getBroadcastFormat().getSampleRate(), udpSocket, this);
             terminalMenu.readNewTerminalInfo(connection);
             broadcast.sendBroadcastData(micReader);
         }catch(Exception e){
@@ -162,7 +196,11 @@ public class Controller {
     // Find way call instance of broadcast
     /*public void stopBroadcast(int[] ids){
         if(broadcastMenu == null){
+<<<<<<< Updated upstream
             broadcastMenu = new Broadcast();
+=======
+            broadcastMenu = new BroadcastMenu(this);
+>>>>>>> Stashed changes
         }
         if(broadcastMenu.isBroadcastOn()==false){
             return;
@@ -209,12 +247,13 @@ public class Controller {
     }
     
     // Send local sound file through udp to speakers
-    public void playFile(String name, int[] ids){
+    public void playFile(String name, List<Terminal> terminals){
         // Select file to play
         if(name != null ){
             currentFile = new File(name);
-        }else{
-            currentFile = new File("Temp.wav");
+        }
+        else{
+            return;
         }
         // If there is no file to select end method
         if(currentFile == null){
@@ -223,10 +262,18 @@ public class Controller {
         // Checking if we have everything initialized and initializing if not
         /*if(connection.getUdpState() == false){
             connection.initializeUDPSocket();
+<<<<<<< Updated upstream
         }*/
         /*if(broadcastMenu == null){
             broadcastMenu = new Broadcast();
         }*/
+
+        /*
+        }
+        if(broadcastMenu == null){
+            broadcastMenu = new BroadcastMenu(this);
+        }*/
+
         if(micReader == null){
             micReader = new MicReader();
         }
@@ -237,13 +284,20 @@ public class Controller {
             return;
         }*/
         // Getting currently active terminals
+
         //activeTerminals = terminalMenu.getActiveTerminals();
+/*
+        activeTerminals = terminalMenu.getActiveTerminals();
+        for(Terminal x : activeTerminals){
+            
+            System.out.println(x.getId() +"   "+ x.getMacAddress());
+        }*/
         try {
             UDPSocket udpSocket = connection.getUDPSocket();
             if(udpSocket == null){
                 return;
             }
-            Broadcast broadcast = new Broadcast(connection, ids, username, micReader.getFileSampleRate(currentFile), udpSocket);
+            Broadcast broadcast = new Broadcast(connection, terminals, username, micReader.getFileSampleRate(currentFile), udpSocket, this);
             try {
                 Thread.sleep(3000);
             } catch (InterruptedException ex) {
@@ -254,7 +308,16 @@ public class Controller {
             //actionMenu.sendMp3SoundFileData(connection, currentFile);
             terminalMenu.readNewTerminalInfo(connection);
         } catch (Exception e) {
-            System.out.println(e);
+            System.out.println("Playfile broadcast error: " + e);
+        }
+    }
+
+    @Override
+    public void onPagingComplete() {
+        System.out.println("OnPagingComplete");
+        currentFile.delete();
+        if(listener != null){
+            listener.onBroadcastComplete();
         }
     }
     

@@ -6,7 +6,6 @@ package obtohjain;
  */
 public class Terminal {
 
-    
     private int id;
     private int volume;
     private boolean onlineStatus;
@@ -27,6 +26,11 @@ public class Terminal {
         this.taskStatus = 0;
         //this.onUse = false;
         this.trackList = null;
+    }
+    
+    public Terminal(int id){
+        this();
+        this.id = id;
     }
 
     public int getId() {
