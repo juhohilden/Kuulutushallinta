@@ -9,12 +9,12 @@ package obtohjain;
  *
  * @author Juho
  */
-public class test {
+//public class test {
 
     /**
      * @param args the command line arguments
      */
-    public static void main(String[] args) {
+    //public static void main(String[] args) {
         // TODO code application logic here
         /*
         try{
@@ -25,7 +25,7 @@ public class test {
         */
         
 
-        Controller controller = new Controller();
+        /*Controller controller = new Controller();
         controller.createConnection("192.168.0.104");
         controller.login("t", "t");
         controller.createTerminalMenu();
@@ -54,6 +54,6 @@ public class test {
         //controller.stopTrack();*/
         //
         
-    }
+    //}
     
-}
+//}

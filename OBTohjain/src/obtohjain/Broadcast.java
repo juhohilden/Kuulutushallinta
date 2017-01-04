@@ -3,12 +3,14 @@ package obtohjain;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.util.List;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.UnsupportedAudioFileException;
@@ -29,38 +31,49 @@ public class Broadcast {
     private ByteArrayOutputStream out;
     private File soundFile;
     private Converter converter;
-    private int[] ids;
+    //private int[] ids;
+    private List<Terminal> terminal;
     private String username;
     private Connection connection;
     //private DatagramSocket tempUdp;
     private UDPSocket udpSocket;
     private boolean micBroadcast = false;
-    private Controller controller;
+    //private Controller controller;
+    
+    private OnPagingCompleteListener listener;
+    
+    public interface OnPagingCompleteListener{
+        public void onPagingComplete();
+    }
     
     // Method for opening terminals for stream
-    public Broadcast(Connection connection, int[] ids, String username, int sampleRate, UDPSocket udpSocket, Controller controller){
+    public Broadcast(Connection connection, List<Terminal> terminal, String username, int sampleRate, UDPSocket udpSocket, OnPagingCompleteListener listener){
         // Initialize private variables ids, username, connection for this broadcast
-        this.ids = ids;
+        //this.ids = ids;
+        this.terminal = terminal;
         this.username = username;
         this.connection = connection;
         this.udpSocket = udpSocket;
-        this.controller = controller;
+        //this.controller = controller;
+        this.listener = listener;
         // Command id for starting broadcast
         int cmdid = 61;
         // Create array about broadcast information for server
         byte[] broadCast;
-        broadCast = byteArrayFillerForBroadcast(cmdid, ids, username, udpSocket.getPort(), sampleRate);
+        broadCast = byteArrayFillerForBroadcast(cmdid, terminal, username, udpSocket.getPort(), sampleRate);
         //System.out.println("port " + udpSocket.getPort());
         // Sending array to server
         try{
             connection.getDataoutputStream().write(broadCast, 0, broadCast.length);
         }catch(Exception e){
             System.out.println(e);
+            System.out.println("Broadcast getDataOutputStream error: " + e);
         }
         try{
             connection.getDataoutputStream().flush();
         }catch(Exception e){
             System.out.println(e);
+            System.out.println("Broadcast getDataOutputStream flush error: " + e);
         }
            
     }
@@ -138,11 +151,16 @@ public class Broadcast {
         s = new Thread(new Runnable() {
             @Override
             public void run() {
+                double durationInSeconds = 30000;
                 int read;
                 // Creating AudioInputStream from file if it is not null
                 if (soundFile != null) {
                     try {
                         tempStream = AudioSystem.getAudioInputStream(soundFile);
+                        AudioFormat format = tempStream.getFormat();
+                        long frames = tempStream.getFrameLength();
+                        durationInSeconds = (frames + 0.0) / format.getFrameRate() + 0.5;
+                        System.out.println("Sound file length in seconds: " + durationInSeconds);
                     } catch (UnsupportedAudioFileException | IOException ex) {
                         Logger.getLogger(Broadcast.class.getName()).log(Level.SEVERE, null, ex);
                     }
@@ -165,18 +183,19 @@ public class Broadcast {
                         }
                         // Waiting a bit before trying send another packet
                         try {
-                            Thread.sleep(10);
+                            Thread.sleep(20);
                         } catch (Exception e) {
                             System.out.println(e);
                         }
                     }
-                        try {
-                            Thread.sleep(1000);
-                        } catch (Exception e) {
-                            System.out.println(e);
-                        }
                     tempStream.close();
-                    controller.stopBroadcast(ids);
+                     if (listener != null) {
+                        Thread.sleep(((long) durationInSeconds) * 1000L);
+                        stopBroadcast();
+                        System.out.println("OnPagingComplete threadin sisällä");
+                        listener.onPagingComplete();
+                    }
+                    //controller.stopBroadcast(ids);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -186,6 +205,7 @@ public class Broadcast {
         s.start();
     }
     
+    // Sample mp3 need to be changed to wav fully so we can have proper samplerate for working stream.
     // Send sound file to ip speakers(Maybe needed look into it later) 
     /*public void sendMp3SoundFileData(Connection connection, File file) {
         currentConnection = connection;
@@ -264,8 +284,13 @@ public class Broadcast {
     }
     
     // Get this broadcasts ids
-    public int[] getIds(){
+    /*public int[] getIds(){
         return ids;
+    }*/
+    
+    // Get this broadcasts terminals
+    public List<Terminal> getTerminals(){
+        return terminal;
     }
     
     // Method for stopping broadcast manualy
@@ -275,7 +300,7 @@ public class Broadcast {
             int cmdid = 62;
             // Create array about stopping broadcast information for server
             byte[] broadCastStopper;
-            broadCastStopper = byteArrayFillerForBroadcastStopper(cmdid, ids, username);
+            broadCastStopper = byteArrayFillerForBroadcastStopper(cmdid, terminal, username);
             // Sending array to server
             try {
                 connection.getDataoutputStream().write(broadCastStopper, 0, broadCastStopper.length);
@@ -299,11 +324,12 @@ public class Broadcast {
     }
     
     // Method for creating byte array for informing server about broadcast
-    private byte[] byteArrayFillerForBroadcast(int cmdid, int[] ids, String username, int udpPort, int sampleRate){
+    private byte[] byteArrayFillerForBroadcast(int cmdid, List<Terminal> activeTerminals, String username, int udpPort, int sampleRate){
         // Usernames lenght 
         int usernameLenght = username.length();
         // Terminal count
-        int terminalCount = ids.length;
+        //int terminalCount = ids.length;
+        int terminalCount = activeTerminals.size();
         int totalLenght = 21 + usernameLenght + (4 * terminalCount);
         // Initialize array
         byte[] broadCast = new byte[totalLenght];
@@ -312,7 +338,8 @@ public class Broadcast {
         broadCast[1] = (byte)totalLenght;
         broadCast[5] = (byte)terminalCount;
         for(int i = 0; i < terminalCount; i++){
-            broadCast[9 + (4 * i)] = (byte)ids[i];
+            //broadCast[9 + (4 * i)] = (byte)ids[i];
+            broadCast[9 + (4 * i)] = (byte)activeTerminals.get(i).getId();
         }
         broadCast[9 + (4 * terminalCount)] = (byte)usernameLenght;
         byte[]usernameByte = username.getBytes();
@@ -329,11 +356,12 @@ public class Broadcast {
     }
     
      // Method for creating byte array for informing server about broadcast
-    private byte[] byteArrayFillerForBroadcastStopper(int cmdid, int[] ids, String username){
+    private byte[] byteArrayFillerForBroadcastStopper(int cmdid, List<Terminal> activeTerminals,String username){
         // Usernames lenght 
         int usernameLenght = username.length();
         // Terminal count
-        int terminalCount = ids.length;
+        //int terminalCount = ids.length;
+        int terminalCount = activeTerminals.size();
         int totalLenght = 13 + usernameLenght + (4 * terminalCount);
         // Initialize array
         byte[] broadCastStopper = new byte[totalLenght];
@@ -342,7 +370,8 @@ public class Broadcast {
         broadCastStopper[1] = (byte)totalLenght;
         broadCastStopper[5] = (byte)terminalCount;
         for(int i = 0; i < terminalCount; i++){
-            broadCastStopper[9 + (4 * i)] = (byte)ids[i];
+           //roadCastStopper[9 + (4 * i)] = (byte)ids[i];
+           broadCastStopper[9 + (4 * i)] = (byte)activeTerminals.get(i).getId();
         }
         broadCastStopper[9 + (4 * terminalCount)] = (byte)usernameLenght;
         byte[]usernameByte = username.getBytes();

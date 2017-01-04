@@ -3,6 +3,7 @@ package obtohjain;
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
+import java.io.IOException;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.Socket;
@@ -37,8 +38,7 @@ public class Connection {
     private UDPSocket[] udpSockets = new UDPSocket[10];
     
     // Creating connection for controller
-    public Connection(String ip){  
-        try{
+    public Connection(String ip)throws IOException{  
             this.ip = ip;
             socket = new Socket(ip, port);
             out = new DataOutputStream(socket.getOutputStream());
@@ -47,10 +47,7 @@ public class Connection {
                 udpSockets[i] = new UDPSocket(13000 + i);
             }
             //udpState =false;
-        }
-        catch(Exception e){
-            System.out.println(e);
-        }  
+
     }    
     
     // Testing if connection succeeded

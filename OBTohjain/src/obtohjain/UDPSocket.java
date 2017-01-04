@@ -18,13 +18,13 @@ public class UDPSocket{
         this.port = port;
         onUse = false;
         try{
-            udpSocket = new DatagramSocket(port); // work with ports between 13000 - 15000 atleast those work
+            udpSocket = new DatagramSocket();//port // work with ports between 13000 - 15000 atleast those work
             udpSocket.setBroadcast(true);
             //bCast = InetAddress.getByName("192.168.0.102");
             bCast = InetAddress.getByName("255.255.255.255");
             //udpState = true;
         }catch(Exception e){
-            System.out.println(e);
+            System.out.println("InitializeUDPSocket error: " + e);
         }
     }
     
