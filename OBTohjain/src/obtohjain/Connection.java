@@ -3,7 +3,6 @@ package obtohjain;
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
-import java.io.IOException;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.Socket;
@@ -38,24 +37,25 @@ public class Connection {
     private UDPSocket[] udpSockets = new UDPSocket[10];
     
     // Creating connection for controller
-    public Connection(String ip) throws IOException{  
-        
+    public Connection(String ip){  
+        try{
             this.ip = ip;
             socket = new Socket(ip, port);
             out = new DataOutputStream(socket.getOutputStream());
             ins = new BufferedInputStream(socket.getInputStream());
-
             for(int i = 0; i < udpSockets.length; i++){
-                udpSockets[i] = new UDPSocket(14000 + i);
+                udpSockets[i] = new UDPSocket(13000 + i);
             }
             //udpState =false;
         }
-
-    
+        catch(Exception e){
+            System.out.println(e);
+        }  
+    }    
     
     // Testing if connection succeeded
     public boolean testConnection(){ 
-        if(socket.isConnected()){
+        if(socket != null && socket.isConnected()){
             return true;
         }else{
             return false;
@@ -72,7 +72,7 @@ public class Connection {
             bCast = InetAddress.getByName("255.255.255.255");
             //udpState = true;
         }catch(Exception e){
-            System.out.println("InitializeUDPSocket error: " + e);
+            System.out.println(e);
         }
     }*/
     

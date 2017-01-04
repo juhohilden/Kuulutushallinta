@@ -5,9 +5,6 @@
  */
 package obtohjain;
 
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  *
  * @author Juho
@@ -15,19 +12,17 @@ import java.util.List;
 public class TerminalMenu { 
     
     // Array for all terminals and their info
-    ///!!!! Change this to List<Terminal>
     private Terminal[] terminals;
     // Array about terminal info from server
     private byte[] terminalInfo;
-    private String musicName;
     private int terminalCount;
-    private int terminalInfoCount;
+    //private int terminalInfoCount;
     
-    public TerminalMenu(byte[] terminalInfo, int terminalInfoCount){
+    public TerminalMenu(byte[] terminalInfo){
         // Saving termial info locally
         this.terminalInfo = terminalInfo;
         // How many bytes of terminal info there are
-        this.terminalInfoCount = terminalInfoCount;
+        //this.terminalInfoCount = terminalInfoCount;
         terminalInfotoTerminalArray(terminalInfo);
         
     }
@@ -53,20 +48,25 @@ public class TerminalMenu {
     }
     
     // Get active terminals
-
     /*public Terminal[] getActiveTerminals(){
         Terminal[] aTerminals;
-
-    public List<Terminal> getActiveTerminals(){
-        List<Terminal> aTerminals = new ArrayList<Terminal>();
-
         // How many terminals are used
+        int numberOfActiveTerminals = 0;
         for (Terminal terminal : terminals) {
             if (terminal.isOnUse()) {
-                aTerminals.add(terminal);
+                numberOfActiveTerminals++;
             }
         }
-        
+        aTerminals = new Terminal[numberOfActiveTerminals];
+        int i = 0;
+        int terminalPointer = 0;
+        while(i < aTerminals.length){
+            if(terminals[terminalPointer].isOnUse()){
+                aTerminals[i] = terminals[i];
+                i++;
+            }
+            terminalPointer++;
+        }
         /*for(int i = 0; i < terminals.length; i++){
             if(terminals[i].isOnUse()){
                 ids[i] = terminals[i].getId();
@@ -86,6 +86,40 @@ public class TerminalMenu {
         return null;
     }
     
+    // Test if terminals are available
+    public int[] getAvailableTerminals(int[] ids) {
+        int[] availableTerminals;
+        int availalbesCount = 0;
+        for (int i = 0; i < ids.length; i++) {
+            if (getTerminals(ids[i]) != null && getTerminals(ids[i]).getTaskStatus() == 11) {
+                availalbesCount++;
+            }
+        }
+        if (availalbesCount != 0) {
+            availableTerminals = new int[availalbesCount];
+            int availableCount = 0;
+            for (int i = 0; i < ids.length; i++) {
+                if (getTerminals(ids[i]) != null && getTerminals(ids[i]).getTaskStatus() == 11) {
+                    availableTerminals[availableCount] = ids[i];
+                    availableCount++;
+                }
+                return availableTerminals;
+            }
+        }
+        //System.out.println("test for not reaching");
+        // If there werent any available terminals
+        return null;
+    }
+    
+    // Set track list for terminal
+    public void setTracklist(int id, Track[] trackList){
+        for (Terminal terminal : terminals) {
+            if (id == terminal.getId()) {
+                terminal.setTracklist(trackList);
+            }
+        }
+    }
+    
     // For testing
     public void printTerminalsInfo(){
         for (Terminal terminal : terminals) {
@@ -97,25 +131,24 @@ public class TerminalMenu {
             System.out.println("task " + terminal.getTaskStatus());
             System.out.println("volume " + terminal.getVolume());
             //System.out.println("selected " + terminal.isOnUse());
-            System.out.println("music " + musicName);
+            System.out.println("user " + terminal.getCurrentUser());
+            if(terminal.getTracklist() != null){
+                for(Track track : terminal.getTracklist()){
+                System.out.println("Track " + track.getName());
+                }
+            }
+            
         }
     }
     
     // Change volume of terminal
     public void changeVolume(Connection connection, int volume, int[] ids){
         // Getting selected terminals ids;
-
         /*int ids[]=null;
         Terminal[] aTerminals = getActiveTerminals();
         for(int i = 0; i < aTerminals.length; i++){
             ids[i] = aTerminals[i].getId();
         }*/
-        /*
-        List<Terminal> aTerminals = getActiveTerminals();
-        for(int i = 0; i < aTerminals.size(); i++){
-            ids[i] = aTerminals.get(i).getId();
-        }*/
-
         // Command id for login
         int cmdid = 92;
         // Create byte array for volume Change
@@ -158,17 +191,17 @@ public class TerminalMenu {
         try {
             newTerminalInfoCount = connection.getBufferedInputStream().read(newTerminalInfo);
         } catch (Exception e) {
-            System.err.println("ReadNewTerminalInfo:");
-            e.printStackTrace();
+            System.out.println(e);
         }
         terminalInfo = newTerminalInfo;
+        System.out.println("ttt");
         terminalInfotoTerminalArray(terminalInfo);
     }
     
     // Putting the streamed byte arrays terminal info to terminal array
     private void terminalInfotoTerminalArray(byte[] terminalInfo){
         terminalCount = terminalInfo[5];
-        boolean[] states = null;
+        //boolean[] states = null;
         // If this isnt first time geting terminal info
         /*if (terminals != null) {
             states = new boolean[terminals.length];
@@ -232,9 +265,9 @@ public class TerminalMenu {
             musicNameLenght = terminalInfo[terminalInfoLenght + terminalNameLenght + macAddressLenght + 73];
             musicName = new char[musicNameLenght];
             for(int j = 0; j < musicNameLenght; j++){
-                musicName[j] =(char) terminalInfo[terminalInfoLenght + terminalNameLenght + macAddressLenght + 73 + j];
+                musicName[j] =(char) terminalInfo[terminalInfoLenght + terminalNameLenght + macAddressLenght + 77 + j];
             }
-            this.musicName = String.copyValueOf(musicName);
+            terminals[i].setCurrentUser(String.copyValueOf(musicName));
             //System.out.println("muusiikki  : "+this.musicName);
             // Changing terminalInfoLenght to access array for next terminal
             //System.out.println("Bittejä terminaalissa " + terminalInfo[terminalInfoLenght + 9]);

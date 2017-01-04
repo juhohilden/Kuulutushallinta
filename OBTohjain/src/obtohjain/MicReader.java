@@ -22,6 +22,7 @@ public class MicReader{
     private File tempFile = new File("Temp.wav");
     private AudioFileFormat.Type fileType = AudioFileFormat.Type.WAVE;
     private AudioInputStream ais;
+    private AudioInputStream getFormat;
     private byte[] data;
     private ByteArrayOutputStream out;
     private String fileName;
@@ -117,11 +118,12 @@ public class MicReader{
             mic = (TargetDataLine) AudioSystem.getLine(info);
             mic.open(recordingFormat);
             mic.start();
+            recording = true;
             Thread s = new Thread(new Runnable() {
                 @Override
                 public void run() {
                     try {
-                        System.out.println("recording");
+                        //System.out.println("recording");
                         ais = new AudioInputStream(mic);
                         if (fileName != null){
                             File newFile = new File(fileName + ".wav");
@@ -145,6 +147,7 @@ public class MicReader{
     public void stopRecord(){
         mic.stop();
         mic.close();
+        recording = false;
     }
     
     // Stop reading microphone for ByteArrayOutputStream
@@ -155,15 +158,12 @@ public class MicReader{
     // Get sampleRate of file
     public int getFileSampleRate(File file){
         try{
-            AudioInputStream getFormat = AudioSystem.getAudioInputStream(file);
-            int sRate = (int)getFormat.getFormat().getSampleRate();
-            getFormat.close();
-            return sRate;
+            getFormat = AudioSystem.getAudioInputStream(file);
         }catch(Exception e){
             e.printStackTrace();
         }
-        
-        return -1;
+        int sRate = (int)getFormat.getFormat().getSampleRate();
+        return sRate;
     }
     
 }
