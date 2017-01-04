@@ -5,6 +5,8 @@
  */
 package obtohjain;
 
+import java.util.ArrayList;
+import java.util.List;
 /**
  *
  * @author Juho
@@ -14,6 +16,7 @@ public class TerminalMenu {
     // Array for all terminals and their info
     private Terminal[] terminals;
     // Array about terminal info from server
+    //private String musicName;
     private byte[] terminalInfo;
     private int terminalCount;
     //private int terminalInfoCount;
@@ -47,6 +50,20 @@ public class TerminalMenu {
         return terminals;
     }
     
+     public List<Terminal> getActiveTerminals(){
+        List<Terminal> aTerminals = new ArrayList<Terminal>();
+
+        // How many terminals are used
+        int numberOfActiveTerminals = 0;
+        for (Terminal terminal : terminals) {
+            if (terminal.isOnUse()) {
+                aTerminals.add(terminal);
+                numberOfActiveTerminals++;
+            }
+        }
+        return aTerminals;
+     }
+     
     // Get active terminals
     /*public Terminal[] getActiveTerminals(){
         Terminal[] aTerminals;
@@ -87,24 +104,27 @@ public class TerminalMenu {
     }
     
     // Test if terminals are available
-    public int[] getAvailableTerminals(int[] ids) {
+    public List<Terminal> getAvailableTerminals(List<Terminal> terminals) {
         int[] availableTerminals;
         int availalbesCount = 0;
-        for (int i = 0; i < ids.length; i++) {
-            if (getTerminals(ids[i]) != null && getTerminals(ids[i]).getTaskStatus() == 11) {
+        for (int i = 0; i < terminals.size(); i++) {
+            if (terminals.get(i) != null && terminals.get(i).getTaskStatus() == 11) {
                 availalbesCount++;
+            }else{
+                terminals.remove(i);
             }
         }
         if (availalbesCount != 0) {
-            availableTerminals = new int[availalbesCount];
+            /*availableTerminals = new int[availalbesCount];
             int availableCount = 0;
-            for (int i = 0; i < ids.length; i++) {
+            for (int i = 0; i < terminals.size(); i++) {
                 if (getTerminals(ids[i]) != null && getTerminals(ids[i]).getTaskStatus() == 11) {
                     availableTerminals[availableCount] = ids[i];
                     availableCount++;
                 }
-                return availableTerminals;
-            }
+                return terminals;
+            }*/
+            return terminals;
         }
         //System.out.println("test for not reaching");
         // If there werent any available terminals
@@ -191,10 +211,10 @@ public class TerminalMenu {
         try {
             newTerminalInfoCount = connection.getBufferedInputStream().read(newTerminalInfo);
         } catch (Exception e) {
-            System.out.println(e);
+            System.err.println("ReadNewTerminalInfo:");
+            e.printStackTrace();
         }
         terminalInfo = newTerminalInfo;
-        System.out.println("ttt");
         terminalInfotoTerminalArray(terminalInfo);
     }
     

@@ -1,15 +1,15 @@
 package obtohjain;
 
 import java.io.File;
-import java.net.DatagramSocket;
 import java.util.ArrayList;
 import java.util.List;
+import java.io.IOException;
 
 /**
  *
  * @author Juho
  */
-public class Controller {
+public class Controller implements Broadcast.OnPagingCompleteListener  {
     // Mikko: this was not used so I commented it out.
     //private Terminal[] terminals;
     //private Terminal[] activeTerminals;
@@ -23,17 +23,26 @@ public class Controller {
     private boolean micTaken=false;
     //private boolean udpTaken=false;
     private TrackMenu trackMenu=null;
+    private OnBroadcastComplete listener;
     //private int[] broadcastingIds = new int[32];
     //private int broadcastingIdsCount=0;
-    List<Broadcast> broadcasts = new ArrayList<Broadcast>(); // Cant be used since playing track from terminal can reserve it
-    List<Integer> usedTerminals = new ArrayList<Integer>(); 
+    List<Broadcast> broadcasts;
+    private List<Terminal> activeTerminals; 
     
-
     public Controller() {
+        broadcasts = new ArrayList<Broadcast>();
+    }
+    
+    public Controller(OnBroadcastComplete listener){
+        this.listener = listener;
+    }
+    
+    public interface OnBroadcastComplete{
+        public void onBroadcastComplete();
     }
     
     // Create connection
-    public boolean createConnection(String ip){
+    public boolean createConnection(String ip) throws IOException{
         connection = new Connection(ip);
         return connection.testConnection();
     }
@@ -68,7 +77,20 @@ public class Controller {
             Terminal[] nullTerminals = {nullTerminal};
             return nullTerminals;
         }        
-    } 
+    }
+    
+    // Return terminals and terminals states
+    /*public List<Terminal> getTerminalsLists(){
+        if(terminalMenu != null){
+            //return terminalMenu.getTerminals();
+            return terminalMenu.getTerminals();
+        }else{
+            Terminal nullTerminal = new Terminal();
+            Terminal[] nullTerminals = {nullTerminal};
+            return nullTerminals;
+        }        
+    }*/
+    
     
     // Return terminals with ids
     public Terminal[] getTerminal(int[] ids){
@@ -150,9 +172,9 @@ public class Controller {
     
     // Play terminal track with id 
     // Change logic work with given ids instead of activeTerminals
-    public void playTrack(int id, int[] ids){
+    public void playTrack(int id, List<Terminal> terminals){
         // Check if ids were sent
-        if(ids == null){
+        if(terminals == null){
             return;
         }
         // If terminalmenu exists
@@ -160,8 +182,8 @@ public class Controller {
             return;
         }
         // If terminals with ids are available
-        ids = terminalMenu.getAvailableTerminals(ids);
-        if(ids == null){
+        terminals = terminalMenu.getAvailableTerminals(terminals);
+        if(terminals == null){
             return;
         }
 
@@ -170,16 +192,16 @@ public class Controller {
             /*for (Terminal activeTerminal : activeTerminals) {
                 trackMenu.getTrackListFromTerminals(connection, activeTerminal.getId());
             }*/
-            for (int i = 0; i < ids.length; i++) {
-                trackMenu.getTrackListFromTerminals(connection, ids[i]);
+            for (int i = 0; i < terminals.size(); i++) {
+                trackMenu.getTrackListFromTerminals(connection, terminals.get(i).getId());
             }
         }
         /*for (Terminal activeTerminal : activeTerminals) {
             trackMenu.playTrack(connection, id, username, activeTerminal.getId());
         }*/
-        for (int i = 0; i < ids.length; i++) {
+        for (int i = 0; i < terminals.size(); i++) {
             
-            trackMenu.playTrack(connection, id, username, ids[i]);
+            trackMenu.playTrack(connection, id, username, terminals.get(i).getId());
         }
         terminalMenu.readNewTerminalInfo(connection);
     }
@@ -212,7 +234,7 @@ public class Controller {
     
     
     // Broadcast sound from mic to ip speakers
-    public void broadCast(int[] ids){
+    public void broadCast(List<Terminal> terminals){
         // Checking if we have everything initialized and initializing if not
         /*if(connection.getUdpState() == false){
             connection.initializeUDPSocket();
@@ -221,7 +243,7 @@ public class Controller {
             broadcastMenu = new Broadcast();
         }*/
         // Check if ids were sent
-        if(ids == null){
+        if(terminals == null){
             return;
         }
         // If terminalmenu exists
@@ -229,10 +251,10 @@ public class Controller {
             return;
         }
         // If terminals with ids are available
-        ids = terminalMenu.getAvailableTerminals(ids);
+        terminals = terminalMenu.getAvailableTerminals(terminals);
         // Checking if terminal is allready broadcasting
-        for(Broadcast curBCast: broadcasts){
-            int[] tempIds = curBCast.getIds();
+        /*for(Broadcast curBCast: broadcasts){
+            List<Terminal> tempTerminals = curBCast.getTerminals().;
             for(int i = 0; i < tempIds.length; i++){
                 for(int j = 0; j < ids.length; j++){
                     if(tempIds[i] == ids[j]){
@@ -240,6 +262,9 @@ public class Controller {
                     }
                 }
             }
+        }*/
+        if(terminals == null){
+            return;
         }
         if(micReader == null){
             micReader = new MicReader();
@@ -264,7 +289,7 @@ public class Controller {
             if(udpSocket == null){
                 return;
             }
-            Broadcast broadcast = new Broadcast(connection, ids, username, (int)micReader.getBroadcastFormat().getSampleRate(), udpSocket, this);
+            Broadcast broadcast = new Broadcast(connection, terminals, username, (int)micReader.getBroadcastFormat().getSampleRate(), udpSocket, this);
             terminalMenu.readNewTerminalInfo(connection);
             broadcast.sendBroadcastData(micReader);
             broadcasts.add(broadcast);
@@ -275,7 +300,7 @@ public class Controller {
     
     // Stop broadcast on active terminals
     // Find way call instance of broadcast
-    public void stopBroadcast(int[] ids){
+    public void stopBroadcast(List<Terminal> terminals){
         /*if(broadcastMenu == null){
             broadcastMenu = new Broadcast();
         }
@@ -290,18 +315,21 @@ public class Controller {
         micReader.stopReadMic();
         broadcastMenu.stopBroadcast(connection, ids, username);*/
         // Check if ids were sent
-        if(ids == null){
+        if(terminals == null){
             return;
         }
         Broadcast tempForStop=null;
         for(Broadcast curBCast: broadcasts){
-            int[] tempIds = curBCast.getIds();
-            for(int i = 0; i < tempIds.length; i++){
-                for(int j = 0; j < ids.length; j++){
+            //int[] tempIds = curBCast.getIds();
+            /*for(int i = 0; i < curBCast.getTerminals().size(); i++){
+                for(int j = 0; j < terminals.size(); j++){
                     if(tempIds[i] == ids[j]){
                         tempForStop = curBCast;
                     }
                 }
+            }*/
+            if(terminals.size() == curBCast.getTerminals().size() && terminals.contains(curBCast.getTerminals())){
+                tempForStop = curBCast;
             }
         }
         if(tempForStop != null){
@@ -351,9 +379,9 @@ public class Controller {
     }
     
     // Send local sound file through udp to speakers
-    public void playFile(String name, int[] ids){
+    public void playFile(String name, List<Terminal> terminals){
         // Check if ids were sent
-        if(ids == null){
+        if(terminals == null){
             return;
         }
         // If terminalmenu exists
@@ -361,9 +389,12 @@ public class Controller {
             return;
         }
         // If terminals with ids are available
-        ids = terminalMenu.getAvailableTerminals(ids);
+        terminals = terminalMenu.getAvailableTerminals(terminals);
+        if(terminals == null){
+            return;
+        }
         // Checking if terminal is allready broadcasting
-        for(Broadcast curBCast: broadcasts){
+        /*for(Broadcast curBCast: broadcasts){
             int[] tempIds = curBCast.getIds();
             for(int i = 0; i < tempIds.length; i++){
                 for(int j = 0; j < ids.length; j++){
@@ -371,9 +402,8 @@ public class Controller {
                         return;
                     }
                 }
-            }
-            
-        }
+            }  
+        }*/
         // Select file to play
         if(name != null ){
             currentFile = new File(name);
@@ -408,7 +438,7 @@ public class Controller {
             if(udpSocket == null){
                 return;
             }
-            Broadcast broadcast = new Broadcast(connection, ids, username, micReader.getFileSampleRate(currentFile), udpSocket, this);
+            Broadcast broadcast = new Broadcast(connection, terminals, username, micReader.getFileSampleRate(currentFile), udpSocket, this);
             try {
                 Thread.sleep(3000);
             } catch (InterruptedException ex) {
@@ -420,7 +450,16 @@ public class Controller {
             //actionMenu.sendMp3SoundFileData(connection, currentFile);
             terminalMenu.readNewTerminalInfo(connection);
         } catch (Exception e) {
-            System.out.println(e);
+            System.out.println("Playfile broadcast error: " + e);
+        }
+    }
+
+    @Override
+    public void onPagingComplete() {
+         System.out.println("OnPagingComplete");
+        currentFile.delete();
+        if(listener != null){
+            listener.onBroadcastComplete();
         }
     }
     
