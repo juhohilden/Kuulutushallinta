@@ -53,7 +53,7 @@ public class TrackMenu {
                 // Creating temporary track object to place in array
                 Track tempTrack = new Track();
                 // Set id for track
-                tempTrack.setId(i+1);
+                tempTrack.setId(i);
                 // Getting the track name from byte array
                 int trackNameLenght = newTerminalTracks[5 + trackInfoLenght];
                 char[] trackName = new char[trackNameLenght];
@@ -82,7 +82,7 @@ public class TrackMenu {
                 trackInfoLenght = trackInfoLenght + trackNameLenght + 12;
             }
         }else{
-            System.out.println("Wrong information");
+            System.out.println("Is not terminal information");
         }
         
     }
@@ -122,7 +122,7 @@ public class TrackMenu {
                 // Creating temporary track object to place in array
                 Track tempTrack = new Track();
                 // Set id for track
-                tempTrack.setId(i+1);
+                tempTrack.setId(i);
                 // Getting the track name from byte array
                 int trackNameLenght = newServersTracks[9 + trackInfoLenght];
                 char[] trackName = new char[trackNameLenght];
@@ -159,7 +159,7 @@ public class TrackMenu {
     
     // Play song from terminal
     public void playTrack(Connection connection, int id, String username, int terminalId){
-        if(id > trackList.length || id == 0){
+        if(id > trackList.length){
             return;
         }
         // Command id for playing track
@@ -210,6 +210,7 @@ public class TrackMenu {
     
     public void printTracks(){
         for(Track track : trackList){
+            System.out.println("Id: " + track.getId() );
             System.out.println("Name: " + track.getName());
             System.out.println("Duration: " +  track.getDuration());
             System.out.println("Filesize: " + track.getFileSize());
@@ -244,8 +245,9 @@ public class TrackMenu {
     
     // Fill array for playing terminals track
     private byte[] byteArrayFillerForTrackPlaying(int cmdid, int id, String username, int terminalId){
-        String name = trackList[id-1].getName();
-        String duration =  trackList[id-1].getDuration();
+        String name = trackList[id].getName();
+        System.out.println("playing "+name);
+        String duration =  trackList[id].getDuration();
         int nameLenght = name.length();
         int durationLenght = duration.length();
         int usernameLenght = username.length();

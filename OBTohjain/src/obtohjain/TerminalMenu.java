@@ -6,6 +6,7 @@
 package obtohjain;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 /**
  *
@@ -159,7 +160,6 @@ public class TerminalMenu {
                 System.out.println("Track " + track.getName());
                 }
             }
-            
         }
     }
     
@@ -223,6 +223,7 @@ public class TerminalMenu {
     // Putting the streamed byte arrays terminal info to terminal array
     private void terminalInfotoTerminalArray(byte[] terminalInfo){
         terminalCount = terminalInfo[5];
+        terminals.removeAll(terminals);
         //boolean[] states = null;
         // If this isnt first time geting terminal info
         /*if (terminals != null) {
@@ -290,13 +291,7 @@ public class TerminalMenu {
                 musicName[j] =(char) terminalInfo[terminalInfoLenght + terminalNameLenght + macAddressLenght + 77 + j];
             }
             t.setCurrentUser(String.copyValueOf(musicName));
-            
-            for(Terminal terminal : terminals){
-               if(t.getId() == terminal.getId()){
-                   terminals.remove(terminal);
-                   terminals.add(t);
-               } 
-            }
+            terminals.add(t);
             //System.out.println("muusiikki  : "+this.musicName);
             // Changing terminalInfoLenght to access array for next terminal
             //System.out.println("Bittejä terminaalissa " + terminalInfo[terminalInfoLenght + 9]);

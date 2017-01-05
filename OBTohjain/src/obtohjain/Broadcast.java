@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
+import java.util.Iterator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.sound.sampled.AudioFormat;
@@ -191,7 +192,7 @@ public class Broadcast {
                     tempStream.close();
                      if (listener != null) {
                         Thread.sleep(((long) durationInSeconds) * 1000L);
-                        stopBroadcast();
+                        stopBroadcast(terminal);
                         System.out.println("OnPagingComplete threadin sisällä");
                         listener.onPagingComplete();
                     }
@@ -294,13 +295,13 @@ public class Broadcast {
     }
     
     // Method for stopping broadcast manualy
-    public void stopBroadcast(){
+    public void stopBroadcast(List<Terminal> terminals){
         if (playSoundFile || playBroadcast) {
             // Command id for stoping broadcast
             int cmdid = 62;
             // Create array about stopping broadcast information for server
             byte[] broadCastStopper;
-            broadCastStopper = byteArrayFillerForBroadcastStopper(cmdid, terminal, username);
+            broadCastStopper = byteArrayFillerForBroadcastStopper(cmdid, terminals, username);
             // Sending array to server
             try {
                 connection.getDataoutputStream().write(broadCastStopper, 0, broadCastStopper.length);
@@ -311,6 +312,16 @@ public class Broadcast {
                 connection.getDataoutputStream().flush();
             } catch (Exception e) {
                 System.out.println(e);
+            }
+            // Remove this given terminals from broadcast
+            Iterator <Terminal> iterTerminal = terminal.iterator();
+            while(iterTerminal.hasNext()){
+                Terminal tempTerminal = iterTerminal.next();
+                for(Terminal termi : terminals){
+                    if(termi.getId() == tempTerminal.getId()){
+                        iterTerminal.remove();
+                    }
+                }
             }
             // Stoping sending threads if they are still on
             playSoundFile = false; // Maybe different stopers depending on broadcast type

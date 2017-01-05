@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.io.IOException;
+import java.util.Iterator;
 
 /**
  *
@@ -64,7 +65,7 @@ public class Controller implements Broadcast.OnPagingCompleteListener  {
     public void createTerminalMenu(){
         if(authentication != null){
             terminalMenu = new TerminalMenu(authentication.getTerminalInfo());
-            //terminalMenu.printTerminalsInfo();
+            terminalMenu.printTerminalsInfo();
         }
     }
     
@@ -195,10 +196,9 @@ public class Controller implements Broadcast.OnPagingCompleteListener  {
             trackMenu.playTrack(connection, id, username, activeTerminal.getId());
         }*/
         for (int i = 0; i < terminals.size(); i++) {
-            
             trackMenu.playTrack(connection, id, username, terminals.get(i).getId());
         }
-        terminalMenu.readNewTerminalInfo(connection);
+        //terminalMenu.readNewTerminalInfo(connection);
     }
     
     // Manualy stop playing selected track
@@ -216,7 +216,7 @@ public class Controller implements Broadcast.OnPagingCompleteListener  {
             trackMenu.stopTrack(connection, username, terminals.get(i).getId());          
         }
         // Need check if terminal is sending first
-        terminalMenu.readNewTerminalInfo(connection);
+        //terminalMenu.readNewTerminalInfo(connection);
     }
     
     // Get tracks from server
@@ -225,7 +225,7 @@ public class Controller implements Broadcast.OnPagingCompleteListener  {
             trackMenu = new TrackMenu();
         }
         trackMenu.getServerTrackList(connection);
-        trackMenu.printTracks();
+        //trackMenu.printTracks();
         return trackMenu.getTracklist();
         //
     }
@@ -299,44 +299,25 @@ public class Controller implements Broadcast.OnPagingCompleteListener  {
     // Stop broadcast on active terminals
     // Find way call instance of broadcast
     public void stopBroadcast(List<Terminal> terminals){
-        /*if(broadcastMenu == null){
-            broadcastMenu = new Broadcast();
-        }
-        if(broadcastMenu.isBroadcastOn()==false){
-            return;
-        }
-        if(micReader == null){
-            micReader = new MicReader();
-        }
-        // Getting currently active terminals
-        //activeTerminals = terminalMenu.getActiveTerminals();
-        micReader.stopReadMic();
-        broadcastMenu.stopBroadcast(connection, ids, username);*/
-        // Check if ids were sent
+        // Avoiding null pointer
         if(terminals == null){
             return;
         }
-        Broadcast tempForStop=null;
-        for(Broadcast curBCast: broadcasts){
-            //int[] tempIds = curBCast.getIds();
-            /*for(int i = 0; i < curBCast.getTerminals().size(); i++){
-                for(int j = 0; j < terminals.size(); j++){
-                    if(tempIds[i] == ids[j]){
-                        tempForStop = curBCast;
-                    }
-                }
-            }*/
-            if(terminals.size() == curBCast.getTerminals().size() && terminals.contains(curBCast.getTerminals())){
-                tempForStop = curBCast;
+        // Iterating if broadcasts are still going
+        Iterator<Broadcast> iterBroadcasts = broadcasts.iterator();
+        while(iterBroadcasts.hasNext()){
+            Broadcast tempBCast = iterBroadcasts.next();
+            if(tempBCast.getTerminals().isEmpty()){
+                iterBroadcasts.remove();
             }
         }
-        if(tempForStop != null){
-            tempForStop.stopBroadcast();
+        // Checking if there are any broadcasts going on
+        if(broadcasts.size() > 0){
+            broadcasts.get(0).stopBroadcast(terminals);
             terminalMenu.readNewTerminalInfo(connection);
-            if(tempForStop.isMicBroadcast()){
+            if(micTaken == true){
                 micTaken = false;
             }
-            broadcasts.remove(tempForStop);
         }
         
     }
