@@ -28,7 +28,6 @@ public class TerminalMenu {
         this.terminalInfo = terminalInfo;
         terminals = new ArrayList<Terminal>();
         // How many bytes of terminal info there are
-        //this.terminalInfoCount = terminalInfoCount;
         terminalInfotoTerminalArray(terminalInfo);
         
     }
@@ -66,35 +65,6 @@ public class TerminalMenu {
         }
         return aTerminals;
      }
-     
-    // Get active terminals
-    /*public Terminal[] getActiveTerminals(){
-        Terminal[] aTerminals;
-        // How many terminals are used
-        int numberOfActiveTerminals = 0;
-        for (Terminal terminal : terminals) {
-            if (terminal.isOnUse()) {
-                numberOfActiveTerminals++;
-            }
-        }
-        aTerminals = new Terminal[numberOfActiveTerminals];
-        int i = 0;
-        int terminalPointer = 0;
-        while(i < aTerminals.length){
-            if(terminals[terminalPointer].isOnUse()){
-                aTerminals[i] = terminals[i];
-                i++;
-            }
-            terminalPointer++;
-        }
-        /*for(int i = 0; i < terminals.length; i++){
-            if(terminals[i].isOnUse()){
-                ids[i] = terminals[i].getId();
-                System.out.println("aktive " + ids[i]);
-            }
-        }*/
-        /*return aTerminals;
-    }*/
     
     // For using terminal variables from other classes
     public Terminal getTerminals(int id){
@@ -108,28 +78,23 @@ public class TerminalMenu {
     
     // Test if terminals are available
     public List<Terminal> getAvailableTerminals(List<Terminal> terminals) {
-        int[] availableTerminals;
         int availalbesCount = 0;
-        for (int i = 0; i < terminals.size(); i++) {
-            if (terminals.get(i) != null && terminals.get(i).getTaskStatus() == 11) {
+        Iterator<Terminal> iterTerminals = terminals.iterator();
+        while(iterTerminals.hasNext()) {
+            Terminal  terminal = iterTerminals.next();
+            System.out.println("handle "+terminal.getId());
+            if (terminal.getTaskStatus() == 11) {
+                System.out.println("available id "+terminal.getId()+" task status was "+terminal.getTaskStatus());
                 availalbesCount++;
             }else{
-                terminals.remove(i);
+                System.out.println("remove "+terminal.getId()+" task status was "+terminal.getTaskStatus());
+                iterTerminals.remove();
             }
         }
         if (availalbesCount != 0) {
-            /*availableTerminals = new int[availalbesCount];
-            int availableCount = 0;
-            for (int i = 0; i < terminals.size(); i++) {
-                if (getTerminals(ids[i]) != null && getTerminals(ids[i]).getTaskStatus() == 11) {
-                    availableTerminals[availableCount] = ids[i];
-                    availableCount++;
-                }
-                return terminals;
-            }*/
+            System.out.println("return terminals " + terminals.size());
             return terminals;
         }
-        //System.out.println("test for not reaching");
         // If there werent any available terminals
         return null;
     }
@@ -165,12 +130,6 @@ public class TerminalMenu {
     
     // Change volume of terminal
     public void changeVolume(Connection connection, int volume, List<Terminal> activeTerminals){
-        // Getting selected terminals ids;
-        /*int ids[]=null;
-        Terminal[] aTerminals = getActiveTerminals();
-        for(int i = 0; i < aTerminals.length; i++){
-            ids[i] = aTerminals[i].getId();
-        }*/
         // Command id for login
         int cmdid = 92;
         // Create byte array for volume Change
@@ -218,6 +177,7 @@ public class TerminalMenu {
         }
         terminalInfo = newTerminalInfo;
         terminalInfotoTerminalArray(terminalInfo);
+        printTerminalsInfo();
     }
     
     // Putting the streamed byte arrays terminal info to terminal array

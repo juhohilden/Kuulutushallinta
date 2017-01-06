@@ -69,9 +69,6 @@ public class MicReader{
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
-                mic.stop();
-                mic.close();
-
             }
         });
         s.start();
@@ -147,11 +144,15 @@ public class MicReader{
         mic.stop();
         mic.close();
         recording = false;
+        System.out.println("Mic Freed");
     }
     
     // Stop reading microphone for ByteArrayOutputStream
     public void stopReadMic(){
+        mic.stop();
+        mic.close();
         recording = false;
+        System.out.println("Mic Freed");
     }
     
     // Get sampleRate of file

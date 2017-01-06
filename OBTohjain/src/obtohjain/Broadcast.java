@@ -24,7 +24,6 @@ import javazoom.jl.converter.Converter;
 public class Broadcast {
     
     private boolean playSoundFile = false;
-    private Connection currentConnection;
     private boolean playBroadcast = false;
     private MicReader micRe;
     private ByteArrayInputStream in;
@@ -32,14 +31,11 @@ public class Broadcast {
     private ByteArrayOutputStream out;
     private File soundFile;
     private Converter converter;
-    //private int[] ids;
     private List<Terminal> terminal;
     private String username;
     private Connection connection;
-    //private DatagramSocket tempUdp;
     private UDPSocket udpSocket;
-    private boolean micBroadcast = false;
-    //private Controller controller;
+    private TerminalMenu terminalMenu;
     
     private OnPagingCompleteListener listener;
     
@@ -48,21 +44,19 @@ public class Broadcast {
     }
     
     // Method for opening terminals for stream
-    public Broadcast(Connection connection, List<Terminal> terminal, String username, int sampleRate, UDPSocket udpSocket, OnPagingCompleteListener listener){
+    public Broadcast(Connection connection, List<Terminal> terminal, String username, int sampleRate, UDPSocket udpSocket, TerminalMenu terminalMenu,OnPagingCompleteListener listener){
         // Initialize private variables ids, username, connection for this broadcast
-        //this.ids = ids;
         this.terminal = terminal;
         this.username = username;
         this.connection = connection;
         this.udpSocket = udpSocket;
-        //this.controller = controller;
+        this.terminalMenu = terminalMenu;
         this.listener = listener;
         // Command id for starting broadcast
         int cmdid = 61;
         // Create array about broadcast information for server
         byte[] broadCast;
         broadCast = byteArrayFillerForBroadcast(cmdid, terminal, username, udpSocket.getPort(), sampleRate);
-        //System.out.println("port " + udpSocket.getPort());
         // Sending array to server
         try{
             connection.getDataoutputStream().write(broadCast, 0, broadCast.length);
@@ -72,6 +66,7 @@ public class Broadcast {
         }
         try{
             connection.getDataoutputStream().flush();
+            terminalMenu.readNewTerminalInfo(connection);
         }catch(Exception e){
             System.out.println(e);
             System.out.println("Broadcast getDataOutputStream flush error: " + e);
@@ -82,8 +77,6 @@ public class Broadcast {
     // Send data captured by microphone to ip speakers
     public void sendBroadcastData(MicReader micR) {
         micRe = micR;
-        currentConnection = connection;
-        micBroadcast = true;
         // Test if micreader is recording
         playBroadcast = micRe.getRecordingState();
         Thread s = new Thread(new Runnable() {
@@ -133,7 +126,8 @@ public class Broadcast {
                         }
 
                     }
-                    //stopBroadcast();
+                    System.out.println("Broadcast finnished stop reading mic");
+                    micRe.stopReadMic();
                     
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -146,7 +140,6 @@ public class Broadcast {
     
     // Send sound file to ip speakers
     public void sendWaveSoundFileData(File file) {
-        currentConnection = connection;
         soundFile = file;
         Thread s;
         s = new Thread(new Runnable() {
@@ -270,11 +263,6 @@ public class Broadcast {
         s.start();
     }*/
     
-    // Get if this broadcast is using mic
-    public boolean isMicBroadcast(){
-        return micBroadcast;
-    }
-    
     // Check if we are broadcasting
     public boolean isBroadcastOn(){
         if(playSoundFile || playBroadcast){
@@ -310,10 +298,11 @@ public class Broadcast {
             }
             try {
                 connection.getDataoutputStream().flush();
+                terminalMenu.readNewTerminalInfo(connection);
             } catch (Exception e) {
                 System.out.println(e);
             }
-            // Remove this given terminals from broadcast
+            // Remove this given terminals from broadcast // Need to iterate another way since java.util.ConcurrentModificationException
             Iterator <Terminal> iterTerminal = terminal.iterator();
             while(iterTerminal.hasNext()){
                 Terminal tempTerminal = iterTerminal.next();
@@ -323,13 +312,13 @@ public class Broadcast {
                     }
                 }
             }
-            // Stoping sending threads if they are still on
-            playSoundFile = false; // Maybe different stopers depending on broadcast type
-            playBroadcast = false;
-            // Free udpSockets
-            connection.freeUDPSocket(udpSocket);
-            if(micBroadcast){
-                micRe.stopReadMic();
+            System.out.println("Broadcast use "+terminal.size()+" terminals");
+            if(terminal.isEmpty()){
+                // Stoping sending threads if they are still on
+                playSoundFile = false;
+                playBroadcast = false;
+                // Free udpSockets
+                connection.freeUDPSocket(udpSocket);
             }
         }
     }
