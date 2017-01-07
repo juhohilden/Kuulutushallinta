@@ -16,24 +16,14 @@ public class Connection {
     
     // Socket used for communicating with server
     private Socket socket;
-    //Streams used by client
+    // Streams used by client
     private DataOutputStream out;
     private BufferedReader in;
-    private BufferedInputStream ins; // ehkä turha
-    // Datagramsocket for udp connection
-    //private DatagramSocket udpSocket;
+    private BufferedInputStream ins;
     // Static port of server
     private int port = 40000;
-    // Static local port for udp connection
-    //private int udpPort; // cant use same udp port all the time
     // Server ip
     private String ip;
-    // InetAdress used for broadcast
-    //private InetAddress bCast;
-    // Is udp socket initialized
-    //private boolean udpState;
-    // Is udp socket taken
-    //private boolean udpTaken;
     // List of useable UDPSockets
     private UDPSocket[] udpSockets = new UDPSocket[10];
     
@@ -46,8 +36,6 @@ public class Connection {
             for(int i = 0; i < udpSockets.length; i++){
                 udpSockets[i] = new UDPSocket(13000 + i);
             }
-            //udpState =false;
-
     }    
     
     // Testing if connection succeeded
@@ -58,39 +46,7 @@ public class Connection {
             return false;
         }  
     }
-    
-    // Initialize UDP socket for broadcast
-    // Need multiple udpSockets for multiple broadcasts
-    /*public void initializeUDPSocket(){
-        try{
-            udpSocket = new DatagramSocket(14002);
-            udpSocket.setBroadcast(true);
-            //bCast = InetAddress.getByName("192.168.0.102");
-            bCast = InetAddress.getByName("255.255.255.255");
-            //udpState = true;
-        }catch(Exception e){
-            System.out.println(e);
-        }
-    }*/
-    
-    // Create temp udp socket for udp broadcast
-    /*public DatagramSocket createUDPSocket(){
-        DatagramSocket tempUdp = null;
-        try{
-            tempUdp = new DatagramSocket(13000); // work with ports between 13000 - 15000 atleast those work
-            System.out.println("port " + tempUdp.getLocalPort());
-            tempUdp.setBroadcast(true);
-            //bCast = InetAddress.getByName("192.168.0.102");
-            bCast = InetAddress.getByName("255.255.255.255");
-            //udpState = true;
-        }catch(Exception e){
-            System.out.println(e);
-        }
-        return tempUdp;
-    }*/
-    
-    
-    
+        
     // Getter for DataOutputStream
     public DataOutputStream getDataoutputStream(){
         return out;
@@ -129,18 +85,6 @@ public class Connection {
         }
     }
     
-
-    
-    // Getter for UDP socket
-    /*public DatagramSocket getDatagramSocket(){
-        return udpSocket;
-    }*/
-    
-    // Getter for local UDP port
-    /*public int getUDPPort(){
-        return udpPort;
-    }*/
-    
     // Getter for server port
     public int getPort(){
         return port;
@@ -150,16 +94,6 @@ public class Connection {
     public String getIP(){
         return ip;
     }
-    
-    // Get InetAddress for broadcast
-    /*public InetAddress getAddress(){
-        return bCast;
-    }*/
-    
-    // Get if udpSocket is already initialized
-    /*public boolean getUdpState(){
-        return udpState;
-    }*/
     
     // Close socket connection
     public void endConnection(){

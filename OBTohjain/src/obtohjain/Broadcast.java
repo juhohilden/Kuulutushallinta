@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -183,9 +184,9 @@ public class Broadcast {
                         }
                     }
                     tempStream.close();
-                     if (listener != null) {
+                    if (listener != null) {
                         Thread.sleep(((long) durationInSeconds) * 1000L);
-                        stopBroadcast(terminal);
+                        stopBroadcast();
                         System.out.println("OnPagingComplete threadin sisällä");
                         listener.onPagingComplete();
                     }
@@ -306,8 +307,10 @@ public class Broadcast {
             Iterator <Terminal> iterTerminal = terminal.iterator();
             while(iterTerminal.hasNext()){
                 Terminal tempTerminal = iterTerminal.next();
-                for(Terminal termi : terminals){
-                    if(termi.getId() == tempTerminal.getId()){
+                Iterator <Terminal> iterTerminals = terminals.iterator();
+                while(iterTerminals.hasNext()){
+                    Terminal tempTerminals = iterTerminals.next();
+                    if(tempTerminals.getId() == tempTerminal.getId()){
                         iterTerminal.remove();
                     }
                 }
@@ -322,6 +325,56 @@ public class Broadcast {
             }
         }
     }
+    
+    // Method for stopping broadcast manualy
+    public void stopBroadcast(){
+        if (playSoundFile || playBroadcast) {
+            // Command id for stoping broadcast
+            int cmdid = 62;
+            // Create array about stopping broadcast information for server
+            byte[] broadCastStopper;
+            broadCastStopper = byteArrayFillerForBroadcastStopper(cmdid, terminal, username);
+            // Sending array to server
+            try {
+                connection.getDataoutputStream().write(broadCastStopper, 0, broadCastStopper.length);
+            } catch (Exception e) {
+                System.out.println(e);
+            }
+            try {
+                connection.getDataoutputStream().flush();
+                terminalMenu.readNewTerminalInfo(connection);
+            } catch (Exception e) {
+                System.out.println(e);
+            }
+            // Remove this given terminals from broadcast // Need to iterate another way since java.util.ConcurrentModificationException
+            terminal.removeAll(terminal);
+            System.out.println("Broadcast use "+terminal.size()+" terminals");
+            if(terminal.isEmpty()){
+                // Stoping sending threads if they are still on
+                playSoundFile = false;
+                playBroadcast = false;
+                // Free udpSockets
+                connection.freeUDPSocket(udpSocket);
+            }
+        }
+    }
+    
+    // Free terminals from use
+    public void freeTerminals(List<Terminal> terminals){
+        // Remove this given terminals from broadcast // Need to iterate another way since java.util.ConcurrentModificationException
+        Iterator<Terminal> iterTerminal = terminal.iterator();
+        while (iterTerminal.hasNext()) {
+            Terminal tempTerminal = iterTerminal.next();
+            Iterator<Terminal> iterTerminals = terminals.iterator();
+            while (iterTerminals.hasNext()) {
+                Terminal tempTerminals = iterTerminals.next();
+                if (tempTerminals.getId() == tempTerminal.getId()) {
+                    iterTerminal.remove();
+                }
+            }
+        }
+    }
+    
     
     // Method for creating byte array for informing server about broadcast
     private byte[] byteArrayFillerForBroadcast(int cmdid, List<Terminal> activeTerminals, String username, int udpPort, int sampleRate){

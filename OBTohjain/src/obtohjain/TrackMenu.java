@@ -11,10 +11,8 @@ public class TrackMenu {
     
     // Music Played in tasks need to be send to terminals before playing
     // Only server can send music to terminals but its not show on mesages?
-    // GET track list from terminals works on previous program
-    // Get track lisr from server works on workstation but cannot what music you have on server client
     // When getting tracks from server the path to music directory need to be set on server
-    private Track[] trackList = null; // Fix trackList be part of terminals and on controller check that terminals have trakcs
+    private Track[] trackList = null;
     
     public Track[] getTracklist(){
         return trackList;

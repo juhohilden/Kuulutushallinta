@@ -44,6 +44,10 @@ public class Controller implements Broadcast.OnPagingCompleteListener  {
     
     // End connection
     public void endConnection(){
+        // Stoping all broadcast before stopping connection
+        if(broadcasts.size() > 0){
+            stopBroadcast(terminalMenu.getTerminals());
+        }
         connection.endConnection();
     }
     
@@ -130,11 +134,6 @@ public class Controller implements Broadcast.OnPagingCompleteListener  {
         }
     }
     
-    // Change terminal to active // Old maybe not needed anymore
-    /*public void setChangeActiveState(int id){
-        terminalMenu.changeTerminalActiveState(id);
-    }*/
-    
     // Get track information from terminals
     public void getTerminalsTracks(List<Terminal> terminals){
         // Avoiding null pointer
@@ -186,8 +185,6 @@ public class Controller implements Broadcast.OnPagingCompleteListener  {
         for (int i = 0; i < terminals.size(); i++) {
             trackMenu.playTrack(connection, id, username, terminals.get(i).getId());
         }
-        // Cant read terminal info since reading blocks thread until file is played or otherwise interunped
-        //terminalMenu.readNewTerminalInfo(connection);
     }
     
     // Manualy stop playing selected track
@@ -200,14 +197,9 @@ public class Controller implements Broadcast.OnPagingCompleteListener  {
         if(terminals == null){
             return;
         }
-        /*for (Terminal activeTerminal : activeTerminals) {
-            trackMenu.stopTrack(connection, username, activeTerminal.getId());
-        }*/
         for (int i = 0; i < terminals.size(); i++) {
             trackMenu.stopTrack(connection, username, terminals.get(i).getId());          
         }
-        // Cant read terminal info since not send when nothing to stop
-        // terminalMenu.readNewTerminalInfo(connection);
     }
     
     // Get tracks from server
@@ -266,18 +258,43 @@ public class Controller implements Broadcast.OnPagingCompleteListener  {
             return;
         }
         // Iterating if broadcasts are still going
+        Boolean stopBCastSend = false;
         Iterator<Broadcast> iterBroadcasts = broadcasts.iterator();
+        int counter=0;
         while(iterBroadcasts.hasNext()){
+            System.out.println("Broadcast "+counter);
+            counter++;
             Broadcast tempBCast = iterBroadcasts.next();
+            Iterator<Terminal> iterTerminal = tempBCast.getTerminals().iterator();
+            List<Terminal> stopBroadcastTerminal = new ArrayList<Terminal>();
+            // Removing all empty broadcasts
             if(tempBCast.getTerminals().isEmpty()){
                 iterBroadcasts.remove();
+                System.out.println("Empty broadcast removed");
+            // If command to stop broadcast havent been send to server send one
+            }else{
+                while(iterTerminal.hasNext()){
+                    Terminal tempTerminal = iterTerminal.next();
+                    System.out.println("Terminal "+tempTerminal.getId());
+                    Iterator<Terminal> iterTerminals = terminals.iterator();                    
+                    while(iterTerminals.hasNext()){
+                        Terminal tempTerminals = iterTerminals.next();
+                        System.out.println("Terminal "+tempTerminals.getId());
+                        if(tempTerminal.getId() == tempTerminals.getId()){
+                            stopBroadcastTerminal.add(tempTerminals);
+                        }
+                    }
+                }
+                if(stopBroadcastTerminal.size() > 0){
+                    tempBCast.stopBroadcast(stopBroadcastTerminal);
+                    stopBCastSend = true;
+                    if (tempBCast.getTerminals().isEmpty()) {
+                        iterBroadcasts.remove();
+                        System.out.println("Empty broadcast removed");
+                    }
+                }
             }
         }
-        // Checking if there are any broadcasts going on
-        if(broadcasts.size() > 0){
-            broadcasts.get(0).stopBroadcast(terminals);
-        }
-        
     }
     
     // Create new audio file with name (Will block everything else so need fix)
