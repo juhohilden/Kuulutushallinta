@@ -8,12 +8,16 @@ import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.DataLine;
 import javax.sound.sampled.TargetDataLine;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
  * @author Juho
  */
 public class MicReader{
+    
+    Logger logger = LoggerFactory.getLogger(MicReader.class);
     
     private TargetDataLine mic;
     private AudioFormat broadcastFormat;
@@ -33,7 +37,7 @@ public class MicReader{
             this.broadcastFormat = new AudioFormat(32000.0f, 16, 1, true, false);
             this.recordingFormat = new AudioFormat(8000.0f, 16, 1, true, false);
         }catch(Exception e){
-            System.out.println(e);
+            logger.error("Error in new AudioFormat.",e);
         }      
     }
     
@@ -45,7 +49,7 @@ public class MicReader{
         try {
             DataLine.Info info = new DataLine.Info(TargetDataLine.class, broadcastFormat);
             if(!AudioSystem.isLineSupported(info)){
-                System.out.println("Line not suported");
+                logger.debug("Line not suported");
             }
             mic = (TargetDataLine) AudioSystem.getTargetDataLine(broadcastFormat);
             mic = (TargetDataLine) AudioSystem.getLine(info);
@@ -108,7 +112,7 @@ public class MicReader{
         try{
             DataLine.Info info = new DataLine.Info(TargetDataLine.class, recordingFormat);
             if(!AudioSystem.isLineSupported(info)){
-                System.out.println("Line not suported");
+                logger.debug("Line not suported");
             }
             mic = (TargetDataLine) AudioSystem.getTargetDataLine(recordingFormat);
             mic = (TargetDataLine) AudioSystem.getLine(info);
@@ -119,7 +123,7 @@ public class MicReader{
                 @Override
                 public void run() {
                     try {
-                        //System.out.println("recording");
+                        logger.debug("recording");
                         ais = new AudioInputStream(mic);
                         if (fileName != null){
                             File newFile = new File(fileName + ".wav");
@@ -135,7 +139,7 @@ public class MicReader{
             s.start();
             
         }catch(Exception e){
-            System.out.println(e);
+            logger.error("Start record failed. ", e);
         }
     }
     

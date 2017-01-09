@@ -1,37 +1,42 @@
 package obtohjain;
 
-
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  *
  * @author Juho
  */
 public class TrackMenu {
-    
+
+    Logger logger = LoggerFactory.getLogger(TrackMenu.class);
+
     // Music Played in tasks need to be send to terminals before playing
     // Only server can send music to terminals but its not show on mesages?
     // When getting tracks from server the path to music directory need to be set on server
     private Track[] trackList = null;
-    
-    public Track[] getTracklist(){
+
+    public Track[] getTracklist() {
         return trackList;
     }
-    public void getTrackListFromTerminals(Connection connection, int id){
+
+    public void getTrackListFromTerminals(Connection connection, int id) {
         // Command id for getting terminals tracklist
         int cmdid = 50;
         // Create byte array for getting terminals tracks
         byte[] terminalsTracks = byteArrayFillerForTerminalsTracks(cmdid, id);
         // Sending array to server
-        try{
+        try {
             connection.getDataoutputStream().write(terminalsTracks, 0, terminalsTracks.length);
-        }catch(Exception e){
-            System.out.println(e);
+        } catch (Exception e) {
+            logger.error("Error in stream write. ", e);
         }
-        try{
+        try {
             connection.getDataoutputStream().flush();
-        }catch(Exception e){
-            System.out.println(e);
+        } catch (Exception e) {
+            logger.error("Error in stream flush. ", e);
         }
         // Initializing array for new terminal track information
         /*byte[] newTerminalTracks = new byte[1024];
@@ -40,7 +45,7 @@ public class TrackMenu {
         try {
             newTerminalTracksCount = connection.getBufferedInputStream().read(newTerminalTracks);
         } catch (Exception e) {
-            System.out.println(e);
+            logger.error("Failed to read steam. ", e);
         }
         // Checking if we realy get terminals tracks information
         if(newTerminalTracks[0] == 50){
@@ -80,11 +85,12 @@ public class TrackMenu {
                 trackInfoLenght = trackInfoLenght + trackNameLenght + 12;
             }
         }else{
+<<<<<<< HEAD
             System.out.println("Is not terminal information");
         }*/
-        
+        logger.debug("Is not terminal information");
     }
-    
+
     public void terminalsTracksToInfoArray(byte[] newTerminalTracks) {
         // Initializing tracklist
         trackList = new Track[newTerminalTracks[1]];
@@ -122,23 +128,23 @@ public class TrackMenu {
             trackInfoLenght = trackInfoLenght + trackNameLenght + 12;
         }
     }
-    
+
     // Get servers tracklist
-    public void getServerTrackList(Connection connection){
+    public void getServerTrackList(Connection connection) {
         // Command id for getting servers tracklist
         int cmdid = 48;
         // Create byte array for servers tracks
         byte[] serversTracks = byteArrayFillerForServersTracks(cmdid);
         // Sending array to server
-        try{
+        try {
             connection.getDataoutputStream().write(serversTracks, 0, serversTracks.length);
-        }catch(Exception e){
-            System.out.println(e);
+        } catch (Exception e) {
+            logger.error("Error writing to stream. ", e);
         }
-        try{
+        try {
             connection.getDataoutputStream().flush();
-        }catch(Exception e){
-            System.out.println(e);
+        } catch (Exception e) {
+            logger.error("Error flushing stream. ", e);
         }
         // Initializing array for new servers track information
         /*byte[] newServersTracks = new byte[1024];
@@ -147,7 +153,7 @@ public class TrackMenu {
         try {
             newServerTracksCount = connection.getBufferedInputStream().read(newServersTracks);
         } catch (Exception e) {
-            System.out.println(e);
+            logger.error("Failed to get terminal tracks. ", e);
         }
          // Checking if we realy get terminals tracks information
         if(newServersTracks[0] == 48){
@@ -189,11 +195,12 @@ public class TrackMenu {
                 trackInfoLenght = trackInfoLenght + trackNameLenght + trackSizeLenght +  trackDurationLenght + 16;
             }
         }else{
+<<<<<<< HEAD
             System.out.println("Wrong information");
         }*/
     }
-    
-    public void serverTrackInfoToArray(byte[] newServersTracks){
+
+    public void serverTrackInfoToArray(byte[] newServersTracks) {
         // Initializing tracklist
         trackList = new Track[newServersTracks[5]];
         int trackInfoLenght = 0;
@@ -230,12 +237,13 @@ public class TrackMenu {
             trackList[i] = tempTrack;
             // Getting the count of already used data
             trackInfoLenght = trackInfoLenght + trackNameLenght + trackSizeLenght + trackDurationLenght + 16;
+            logger.debug("Wrong information");
         }
     }
-    
+
     // Play song from terminal
-    public void playTrack(Connection connection, int id, String username, int terminalId){
-        if(id > trackList.length){
+    public void playTrack(Connection connection, int id, String username, int terminalId) {
+        if (id > trackList.length) {
             return;
         }
         // Command id for playing track
@@ -243,20 +251,29 @@ public class TrackMenu {
         // Create byte array for playing track
         byte[] playingTrack = byteArrayFillerForTrackPlaying(cmdid, id, username, terminalId);
         // Sending array to server
-        try{
+        try {
             connection.getDataoutputStream().write(playingTrack, 0, playingTrack.length);
-        }catch(Exception e){
-            System.out.println(e);
+        } catch (Exception e) {
+            logger.error("Failed writing track to stream. ", e);
         }
-        try{
+        try {
             connection.getDataoutputStream().flush();
-        }catch(Exception e){
-            System.out.println(e);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        // Initializing array for new terminal track information
+        byte[] newTerminalInfo = new byte[1024];
+        int newTerminalInfoCount = 0;
+        // Getting the terminals tracks information from server
+        try {
+            newTerminalInfoCount = connection.getBufferedInputStream().read(newTerminalInfo);
+        } catch (Exception e) {
+            logger.error("Failed getting terminals tracks. ", e);
         }
     }
-    
+
     // Stop playing track from terminal
-    public void stopTrack(Connection connection, String username, int terminalId){
+    public void stopTrack(Connection connection, String username, int terminalId) {
         // Command id for playing track
         int cmdid = 71;
         // Create byte array for playing track
@@ -265,96 +282,94 @@ public class TrackMenu {
         try {
             connection.getDataoutputStream().write(stopTrack, 0, stopTrack.length);
         } catch (Exception e) {
-            System.out.println(e);
+            logger.error("Failed stopping track. ", e);
         }
         try {
             connection.getDataoutputStream().flush();
         } catch (Exception e) {
-            System.out.println(e);
+            logger.error("Failed flushing stream on stop track. ", e);
+        }
+
+    }
+
+    public void printTracks() {
+        for (Track track : trackList) {
+            logger.debug("Id: " + track.getId());
+            logger.debug("Name: " + track.getName());
+            logger.debug("Duration: " + track.getDuration());
+            logger.debug("Filesize: " + track.getFileSize());
         }
     }
-    
-    
-    public void printTracks(){
-        for(Track track : trackList){
-            System.out.println("Id: " + track.getId() );
-            System.out.println("Name: " + track.getName());
-            System.out.println("Duration: " +  track.getDuration());
-            System.out.println("Filesize: " + track.getFileSize());
-        }
-    }
-    
+
     // Fill array for terminal tracks getter
-    private byte[] byteArrayFillerForTerminalsTracks(int cmdid, int id){
+    private byte[] byteArrayFillerForTerminalsTracks(int cmdid, int id) {
         // Creating the byte array for getting terminals tracks
         byte[] terminalsTracks = new byte[9];
         // cmdid for getting terminals tracks
-        terminalsTracks[0] = (byte)cmdid;
+        terminalsTracks[0] = (byte) cmdid;
         // Filling track getter byte array
-        terminalsTracks[1] = (byte)9;
-        terminalsTracks[5] = (byte)id;
+        terminalsTracks[1] = (byte) 9;
+        terminalsTracks[5] = (byte) id;
         return terminalsTracks;
     }
-    
-    
-    
+
     // Fill array for server tracks getter
-    private byte[] byteArrayFillerForServersTracks(int cmdid){
+    private byte[] byteArrayFillerForServersTracks(int cmdid) {
         // Creating the byte array for getting servers tracks
         byte[] serversTracks = new byte[9];
         // cmdid for getting servers tracks
-        serversTracks[0] = (byte)cmdid;
+        serversTracks[0] = (byte) cmdid;
         // Filling track getter byte array
-        serversTracks[1] = (byte)9;
-        serversTracks[5] = (byte)0;
+        serversTracks[1] = (byte) 9;
+        serversTracks[5] = (byte) 0;
         return serversTracks;
     }
-    
+
     // Fill array for playing terminals track
-    private byte[] byteArrayFillerForTrackPlaying(int cmdid, int id, String username, int terminalId){
+    private byte[] byteArrayFillerForTrackPlaying(int cmdid, int id, String username, int terminalId) {
         String name = trackList[id].getName();
-        System.out.println("playing "+name);
-        String duration =  trackList[id].getDuration();
+        System.out.println("playing " + name);
+        String duration = trackList[id].getDuration();
         int nameLenght = name.length();
         int durationLenght = duration.length();
         int usernameLenght = username.length();
-        int totalLenght = 21+nameLenght+durationLenght+usernameLenght;
+        int totalLenght = 21 + nameLenght + durationLenght + usernameLenght;
         // Creating the byte array for playing terminals tracks
         byte[] playTrack = new byte[totalLenght];
         // Filling track player byte array
-        playTrack[0] = (byte)cmdid;
-        playTrack[1] = (byte)totalLenght;
-        playTrack[5] = (byte)usernameLenght;
-        byte[]usernameByte = username.getBytes();
+        playTrack[0] = (byte) cmdid;
+        playTrack[1] = (byte) totalLenght;
+        playTrack[5] = (byte) usernameLenght;
+        byte[] usernameByte = username.getBytes();
         System.arraycopy(usernameByte, 0, playTrack, 9, usernameLenght);
-        playTrack[9+usernameLenght] = (byte) terminalId;
-        playTrack[13+usernameLenght] = (byte) nameLenght;
-        byte[]nameByte = name.getBytes();
-        System.arraycopy(nameByte, 0, playTrack, 17+usernameLenght, nameLenght);
-        playTrack[17+usernameLenght+nameLenght] = (byte) durationLenght;
-        byte[]durationByte = duration.getBytes();
-        System.arraycopy(durationByte, 0, playTrack, 21+usernameLenght+nameLenght, durationLenght);
+        playTrack[9 + usernameLenght] = (byte) terminalId;
+        playTrack[13 + usernameLenght] = (byte) nameLenght;
+        byte[] nameByte = name.getBytes();
+        System.arraycopy(nameByte, 0, playTrack, 17 + usernameLenght, nameLenght);
+        playTrack[17 + usernameLenght + nameLenght] = (byte) durationLenght;
+        byte[] durationByte = duration.getBytes();
+        System.arraycopy(durationByte, 0, playTrack, 21 + usernameLenght + nameLenght, durationLenght);
         return playTrack;
     }
-    
+
     // Fill array for stoping track
-    private byte[] byteArrayFillerForStopTrack(int cmdid, String username, int terminalId){
+    private byte[] byteArrayFillerForStopTrack(int cmdid, String username, int terminalId) {
         int usernameLenght = username.length();
-        int totalLenght = 13+usernameLenght;
+        int totalLenght = 13 + usernameLenght;
         // Creating the byte array for playing terminals tracks
         byte[] stopTrack = new byte[totalLenght];
         // Filling track player byte array
-        stopTrack[0] = (byte)cmdid;
-        stopTrack[1] = (byte)totalLenght;
-        stopTrack[5] = (byte)usernameLenght;
-        byte[]usernameByte = username.getBytes();
+        stopTrack[0] = (byte) cmdid;
+        stopTrack[1] = (byte) totalLenght;
+        stopTrack[5] = (byte) usernameLenght;
+        byte[] usernameByte = username.getBytes();
         System.arraycopy(usernameByte, 0, stopTrack, 9, usernameLenght);
-        stopTrack[9+usernameLenght] = (byte) terminalId;
+        stopTrack[9 + usernameLenght] = (byte) terminalId;
         return stopTrack;
     }
-    
+
     // Change seconds to duration string
-    private String secondsToDuration(int s){
+    private String secondsToDuration(int s) {
         int seconds = s;
         int minutes = 0;
         int hours = 0;
@@ -369,21 +384,21 @@ public class TrackMenu {
             hours++;
             minutes = minutes - 60;
         }
-        if(hours < 10){
+        if (hours < 10) {
             h = "0" + hours;
-        }else{
+        } else {
             h = "" + hours;
         }
-        if(minutes < 10){
+        if (minutes < 10) {
             min = "0" + minutes;
-        }else{
+        } else {
             min = "" + minutes;
         }
-        if(seconds < 10){
+        if (seconds < 10) {
             sec = "0" + seconds;
-        }else{
+        } else {
             sec = "" + seconds;
         }
-        return h+"-"+min+"-"+sec;
+        return h + "-" + min + "-" + sec;
     }
 }

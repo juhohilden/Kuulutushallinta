@@ -7,6 +7,8 @@ import java.io.IOException;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.Socket;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -14,6 +16,7 @@ import java.net.Socket;
  */
 public class Connection {
     
+    Logger logger = LoggerFactory.getLogger(Connection.class);
     // Socket used for communicating with server
     private Socket socket;
     // Streams used by client
@@ -102,7 +105,7 @@ public class Connection {
             ins.close();
             socket.close();
         }catch(Exception e){
-            System.out.println(e);
+            logger.error("Error closing sockets in endConnection. ", e);
         }  
     }   
 }
