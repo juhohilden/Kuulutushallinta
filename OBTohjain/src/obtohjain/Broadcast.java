@@ -67,7 +67,7 @@ public class Broadcast {
         }
         try{
             connection.getDataoutputStream().flush();
-            terminalMenu.readNewTerminalInfo(connection);
+            //terminalMenu.readNewTerminalInfo(connection);
         }catch(Exception e){
             System.out.println(e);
             System.out.println("Broadcast getDataOutputStream flush error: " + e);
@@ -299,7 +299,7 @@ public class Broadcast {
             }
             try {
                 connection.getDataoutputStream().flush();
-                terminalMenu.readNewTerminalInfo(connection);
+                //terminalMenu.readNewTerminalInfo(connection);
             } catch (Exception e) {
                 System.out.println(e);
             }
@@ -342,7 +342,7 @@ public class Broadcast {
             }
             try {
                 connection.getDataoutputStream().flush();
-                terminalMenu.readNewTerminalInfo(connection);
+                //terminalMenu.readNewTerminalInfo(connection);
             } catch (Exception e) {
                 System.out.println(e);
             }

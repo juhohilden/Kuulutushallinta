@@ -18,11 +18,12 @@ public class Controller implements Broadcast.OnPagingCompleteListener  {
     private MicReader micReader=null;
     private String username;
     private File currentFile=null;
-    //private boolean micTaken=false;
+    TerminalInfoListener terminalInfoListener;
     private TrackMenu trackMenu=null;
     private OnBroadcastComplete listener;
     private List<Broadcast> broadcasts;
-    private List<Terminal> activeTerminals; 
+    private List<Terminal> activeTerminals;
+    private boolean online=false;
     
     public Controller() {
         broadcasts = new ArrayList<Broadcast>();
@@ -48,6 +49,7 @@ public class Controller implements Broadcast.OnPagingCompleteListener  {
         if(broadcasts.size() > 0){
             stopBroadcast(terminalMenu.getTerminals());
         }
+        online = false;
         connection.endConnection();
     }
     
@@ -61,8 +63,11 @@ public class Controller implements Broadcast.OnPagingCompleteListener  {
     
     // Create terminal menu
     public void createTerminalMenu(){
-        if(authentication != null){
+        if(authentication != null && terminalMenu == null){
             terminalMenu = new TerminalMenu(authentication.getTerminalInfo());
+            terminalInfoListener = new TerminalInfoListener();
+            online = true;
+            terminalInfoListener.start();
         }
     }
     
@@ -130,7 +135,7 @@ public class Controller implements Broadcast.OnPagingCompleteListener  {
         // If someones volume is realy changing
         if(tempTerminals.size() >= 1){
             terminalMenu.changeVolume(connection,volume,tempTerminals);
-            terminalMenu.readNewTerminalInfo(connection);
+            //terminalMenu.readNewTerminalInfo(connection);
         }
     }
     
@@ -203,11 +208,14 @@ public class Controller implements Broadcast.OnPagingCompleteListener  {
     }
     
     // Get tracks from server
-    public Track[] getServersTracks(){
+    public void getServersTracks(){
         if(trackMenu == null){
             trackMenu = new TrackMenu();
         }
         trackMenu.getServerTrackList(connection);
+    }
+    
+    public Track[] showServersTracks(){
         return trackMenu.getTracklist();
     }
     
@@ -378,6 +386,38 @@ public class Controller implements Broadcast.OnPagingCompleteListener  {
         if(listener != null){
             listener.onBroadcastComplete();
         }
+    }
+    
+    class TerminalInfoListener extends Thread{
+        
+        @Override
+        public void run(){
+            while(online){
+                byte[] newInfo = new byte[1024];
+                int newTerminalInfoCount = 0;
+                try {
+                    newTerminalInfoCount = connection.getBufferedInputStream().read(newInfo);
+                } catch (Exception e) {
+                    System.err.println("ReadNewTerminalInfo:");
+                    e.printStackTrace();
+                }
+                if (newInfo[0] == 89) {
+                    System.out.println("New terminal menu read");
+                    terminalMenu.terminalInfotoTerminalArray(newInfo);
+                    terminalMenu.printTerminalsInfo();
+                }else if(newInfo[0] == 50 &&  trackMenu != null ){
+                    System.out.println("New terminal tracks read");
+                    trackMenu.terminalsTracksToInfoArray(newInfo);
+                    trackMenu.printTracks();
+                }
+                else if(newInfo[0] == 48 &&  trackMenu != null ){
+                    System.out.println("New server tracks read");
+                    trackMenu.serverTrackInfoToArray(newInfo);
+                    trackMenu.printTracks();
+                }
+            }           
+        }
+        
     }
     
     

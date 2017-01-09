@@ -34,7 +34,7 @@ public class TrackMenu {
             System.out.println(e);
         }
         // Initializing array for new terminal track information
-        byte[] newTerminalTracks = new byte[1024];
+        /*byte[] newTerminalTracks = new byte[1024];
         int newTerminalTracksCount = 0;
         // Getting the terminals tracks information from server
         try {
@@ -81,8 +81,46 @@ public class TrackMenu {
             }
         }else{
             System.out.println("Is not terminal information");
-        }
+        }*/
         
+    }
+    
+    public void terminalsTracksToInfoArray(byte[] newTerminalTracks) {
+        // Initializing tracklist
+        trackList = new Track[newTerminalTracks[1]];
+        int trackInfoLenght = 0;
+        for (int i = 0; i < trackList.length; i++) {
+            // Creating temporary track object to place in array
+            Track tempTrack = new Track();
+            // Set id for track
+            tempTrack.setId(i);
+            // Getting the track name from byte array
+            int trackNameLenght = newTerminalTracks[5 + trackInfoLenght];
+            char[] trackName = new char[trackNameLenght];
+            for (int j = 0; j < trackNameLenght; j++) {
+                trackName[j] = (char) newTerminalTracks[trackInfoLenght + 9 + j];
+            }
+            tempTrack.setName(String.copyValueOf(trackName));
+            // Transfering byte array to int through bytebuffer to get song duration
+            byte[] toBigInt = new byte[4];
+            for (int j = 0; j < toBigInt.length; j++) {
+                toBigInt[j] = newTerminalTracks[trackInfoLenght + 9 + trackNameLenght + j];
+            }
+            ByteBuffer buffer = ByteBuffer.wrap(toBigInt);
+            buffer.order(ByteOrder.LITTLE_ENDIAN);
+            tempTrack.setDuration(secondsToDuration(buffer.getInt())); // Get wrong duration from terminal but problems is whit saving??
+            // Transfering byte array to int through bytebuffer to get filesize
+            byte[] toBigInt2 = new byte[4];
+            for (int j = 0; j < toBigInt2.length; j++) {
+                toBigInt2[j] = newTerminalTracks[trackInfoLenght + 13 + trackNameLenght + j];
+            }
+            ByteBuffer buffer2 = ByteBuffer.wrap(toBigInt2);
+            buffer2.order(ByteOrder.LITTLE_ENDIAN);
+            tempTrack.setFileSize(Integer.toString(buffer2.getInt() / 1024) + " kb");
+            trackList[i] = tempTrack;
+            // Getting the count of already used data
+            trackInfoLenght = trackInfoLenght + trackNameLenght + 12;
+        }
     }
     
     // Get servers tracklist
@@ -103,7 +141,7 @@ public class TrackMenu {
             System.out.println(e);
         }
         // Initializing array for new servers track information
-        byte[] newServersTracks = new byte[1024];
+        /*byte[] newServersTracks = new byte[1024];
         int newServerTracksCount = 0;
         // Getting the terminals tracks information from server
         try {
@@ -152,6 +190,46 @@ public class TrackMenu {
             }
         }else{
             System.out.println("Wrong information");
+        }*/
+    }
+    
+    public void serverTrackInfoToArray(byte[] newServersTracks){
+        // Initializing tracklist
+        trackList = new Track[newServersTracks[5]];
+        int trackInfoLenght = 0;
+        for (int i = 0; i < trackList.length; i++) {
+            // Creating temporary track object to place in array
+            Track tempTrack = new Track();
+            // Set id for track
+            tempTrack.setId(i);
+            // Getting the track name from byte array
+            int trackNameLenght = newServersTracks[9 + trackInfoLenght];
+            char[] trackName = new char[trackNameLenght];
+            for (int j = 0; j < trackNameLenght; j++) {
+                trackName[j] = (char) newServersTracks[trackInfoLenght + 13 + j];
+            }
+            tempTrack.setName(String.copyValueOf(trackName));
+            // Getting the track size from byte array
+            int trackSizeLenght = newServersTracks[13 + trackInfoLenght + trackNameLenght];
+            char[] trackSize = new char[trackNameLenght];
+            for (int j = 0; j < trackSizeLenght; j++) {
+                trackSize[j] = (char) newServersTracks[trackInfoLenght + 17 + j + trackNameLenght];
+            }
+            tempTrack.setFileSize(String.copyValueOf(trackSize));
+            //Getting if server track is folder instead of file
+            if (newServersTracks[trackInfoLenght + 17 + trackNameLenght + trackSizeLenght] == 0) {
+                tempTrack.fileIsFolder();
+            }
+            // Getting the track duration from byte array
+            int trackDurationLenght = newServersTracks[21 + trackInfoLenght + trackNameLenght + trackSizeLenght];
+            char[] trackDuration = new char[trackDurationLenght];
+            for (int j = 0; j < trackDurationLenght; j++) {
+                trackDuration[j] = (char) newServersTracks[trackInfoLenght + 25 + j + trackNameLenght + trackSizeLenght];
+            }
+            tempTrack.setDuration(String.copyValueOf(trackDuration));
+            trackList[i] = tempTrack;
+            // Getting the count of already used data
+            trackInfoLenght = trackInfoLenght + trackNameLenght + trackSizeLenght + trackDurationLenght + 16;
         }
     }
     
@@ -173,15 +251,6 @@ public class TrackMenu {
         try{
             connection.getDataoutputStream().flush();
         }catch(Exception e){
-            System.out.println(e);
-        }
-        // Initializing array for new terminal track information
-        byte[] newTerminalInfo = new byte[1024];
-        int newTerminalInfoCount = 0;
-        // Getting the terminals tracks information from server
-        try {
-            newTerminalInfoCount = connection.getBufferedInputStream().read(newTerminalInfo);
-        } catch (Exception e) {
             System.out.println(e);
         }
     }

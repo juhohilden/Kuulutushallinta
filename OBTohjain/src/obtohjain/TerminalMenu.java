@@ -125,7 +125,7 @@ public class TerminalMenu {
     }
     
     // Update terminal menu after changes
-    public void readNewTerminalInfo(Connection connection){
+    /*public void readNewTerminalInfo(Connection connection){
         byte[] newTerminalInfo = new byte[1024];
         int newTerminalInfoCount = 0;
         try {
@@ -134,13 +134,18 @@ public class TerminalMenu {
             System.err.println("ReadNewTerminalInfo:");
             e.printStackTrace();
         }
-        byte[] terminalInfo = newTerminalInfo;
-        terminalInfotoTerminalArray(terminalInfo);
-        printTerminalsInfo();
-    }
+        if(newTerminalInfo[0] == 89){
+            byte[] terminalInfo = newTerminalInfo;
+            terminalInfotoTerminalArray(terminalInfo);
+            printTerminalsInfo();
+        }
+        
+    }*/
+    
+    
     
     // Putting the streamed byte arrays terminal info to terminal array
-    private void terminalInfotoTerminalArray(byte[] terminalInfo){
+    public void terminalInfotoTerminalArray(byte[] terminalInfo){
         terminalCount = terminalInfo[5];
         terminals.removeAll(terminals);
         // Variables for managing right terminal and right terminal info
