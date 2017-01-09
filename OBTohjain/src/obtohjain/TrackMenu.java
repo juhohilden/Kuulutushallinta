@@ -3,11 +3,15 @@ package obtohjain;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 /**
  *
  * @author Juho
  */
 public class TrackMenu {
+    
+    Logger logger = LoggerFactory.getLogger(TrackMenu.class);
     
     // Music Played in tasks need to be send to terminals before playing
     // Only server can send music to terminals but its not show on mesages?
@@ -26,12 +30,12 @@ public class TrackMenu {
         try{
             connection.getDataoutputStream().write(terminalsTracks, 0, terminalsTracks.length);
         }catch(Exception e){
-            System.out.println(e);
+            logger.error("Error in stream write. ", e);
         }
         try{
             connection.getDataoutputStream().flush();
         }catch(Exception e){
-            System.out.println(e);
+            logger.error("Error in stream flush. ", e);
         }
         // Initializing array for new terminal track information
         byte[] newTerminalTracks = new byte[1024];
@@ -40,7 +44,7 @@ public class TrackMenu {
         try {
             newTerminalTracksCount = connection.getBufferedInputStream().read(newTerminalTracks);
         } catch (Exception e) {
-            System.out.println(e);
+            logger.error("Failed to read steam. ", e);
         }
         // Checking if we realy get terminals tracks information
         if(newTerminalTracks[0] == 50){
@@ -80,7 +84,7 @@ public class TrackMenu {
                 trackInfoLenght = trackInfoLenght + trackNameLenght + 12;
             }
         }else{
-            System.out.println("Is not terminal information");
+            logger.debug("Is not terminal information");
         }
         
     }
@@ -95,12 +99,12 @@ public class TrackMenu {
         try{
             connection.getDataoutputStream().write(serversTracks, 0, serversTracks.length);
         }catch(Exception e){
-            System.out.println(e);
+            logger.error("Error writing to stream. ",e);
         }
         try{
             connection.getDataoutputStream().flush();
         }catch(Exception e){
-            System.out.println(e);
+            logger.error("Error flushing stream. ",e);
         }
         // Initializing array for new servers track information
         byte[] newServersTracks = new byte[1024];
@@ -109,7 +113,7 @@ public class TrackMenu {
         try {
             newServerTracksCount = connection.getBufferedInputStream().read(newServersTracks);
         } catch (Exception e) {
-            System.out.println(e);
+            logger.error("Failed to get terminal tracks. ", e);
         }
          // Checking if we realy get terminals tracks information
         if(newServersTracks[0] == 48){
@@ -151,7 +155,7 @@ public class TrackMenu {
                 trackInfoLenght = trackInfoLenght + trackNameLenght + trackSizeLenght +  trackDurationLenght + 16;
             }
         }else{
-            System.out.println("Wrong information");
+            logger.debug("Wrong information");
         }
     }
     
@@ -168,12 +172,12 @@ public class TrackMenu {
         try{
             connection.getDataoutputStream().write(playingTrack, 0, playingTrack.length);
         }catch(Exception e){
-            System.out.println(e);
+            logger.error("Failed writing track to stream. ",e);
         }
         try{
             connection.getDataoutputStream().flush();
         }catch(Exception e){
-            System.out.println(e);
+            e.printStackTrace();
         }
         // Initializing array for new terminal track information
         byte[] newTerminalInfo = new byte[1024];
@@ -182,7 +186,7 @@ public class TrackMenu {
         try {
             newTerminalInfoCount = connection.getBufferedInputStream().read(newTerminalInfo);
         } catch (Exception e) {
-            System.out.println(e);
+            logger.error("Failed getting terminals tracks. ",e);
         }
     }
     
@@ -196,22 +200,23 @@ public class TrackMenu {
         try {
             connection.getDataoutputStream().write(stopTrack, 0, stopTrack.length);
         } catch (Exception e) {
-            System.out.println(e);
+            logger.error("Failed stopping track. ",e);
         }
         try {
             connection.getDataoutputStream().flush();
         } catch (Exception e) {
-            System.out.println(e);
+            logger.error("Failed flushing stream on stop track. ",e);
         }
+
     }
     
     
     public void printTracks(){
         for(Track track : trackList){
-            System.out.println("Id: " + track.getId() );
-            System.out.println("Name: " + track.getName());
-            System.out.println("Duration: " +  track.getDuration());
-            System.out.println("Filesize: " + track.getFileSize());
+            logger.debug("Id: " + track.getId() );
+            logger.debug("Name: " + track.getName());
+            logger.debug("Duration: " +  track.getDuration());
+            logger.debug("Filesize: " + track.getFileSize());
         }
     }
     

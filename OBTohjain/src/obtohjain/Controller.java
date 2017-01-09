@@ -5,6 +5,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.io.IOException;
 import java.util.Iterator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 
 /**
  *
@@ -13,6 +16,10 @@ import java.util.Iterator;
 public class Controller implements Broadcast.OnPagingCompleteListener  {
     // Mikko: this was not used so I commented it out.
     private TerminalMenu terminalMenu=null;
+    //private Terminal[] terminals;
+    Logger logger = LoggerFactory.getLogger(Controller.class);
+    //private Terminal[] activeTerminals;
+    private List<Terminal> activeTerminals;
     private Connection connection;
     private Authentication authentication=null;
     private MicReader micReader=null;
@@ -22,7 +29,6 @@ public class Controller implements Broadcast.OnPagingCompleteListener  {
     private TrackMenu trackMenu=null;
     private OnBroadcastComplete listener;
     private List<Broadcast> broadcasts;
-    private List<Terminal> activeTerminals; 
     
     public Controller() {
         broadcasts = new ArrayList<Broadcast>();
@@ -30,6 +36,22 @@ public class Controller implements Broadcast.OnPagingCompleteListener  {
     
     public Controller(OnBroadcastComplete listener){
         this.listener = listener;
+    }
+    
+    public void setListener(OnBroadcastComplete listener){
+        this.listener = listener;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }  
+
+    public void setConnection(Connection connection) {
+        this.connection = connection;
+    }
+
+    public void setAuthentication(Authentication authentication) {
+        this.authentication = authentication;
     }
     
     public interface OnBroadcastComplete{
@@ -247,7 +269,7 @@ public class Controller implements Broadcast.OnPagingCompleteListener  {
             broadcast.sendBroadcastData(micReader);
             broadcasts.add(broadcast);
         }catch(Exception e){
-            System.out.println("Broadcast failed" + e);
+            logger.error("Error in mic broadcast. ", e);
         }
     }
     
@@ -314,9 +336,11 @@ public class Controller implements Broadcast.OnPagingCompleteListener  {
         if(micReader == null){
             return;
         }
+
         if(micReader.getRecordingState() == false){
             return;
         }
+
         micReader.stopRecord();
     
     }
@@ -366,14 +390,17 @@ public class Controller implements Broadcast.OnPagingCompleteListener  {
             broadcast.sendWaveSoundFileData(currentFile);
             broadcasts.add(broadcast);
             //actionMenu.sendMp3SoundFileData(connection, currentFile);
+//            logger.debug("Before readNewTerminalInfo");
+//            terminalMenu.readNewTerminalInfo(connection);
         } catch (Exception e) {
-            System.out.println("Playfile broadcast error: " + e);
+            logger.error("Playfile broadcast error: ", e);
         }
     }
 
     @Override
     public void onPagingComplete() {
-         System.out.println("OnPagingComplete");
+
+        logger.debug("OnPagingComplete");
         currentFile.delete();
         if(listener != null){
             listener.onBroadcastComplete();

@@ -4,12 +4,16 @@ package obtohjain;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  *
  * @author Juho
  */
 public class TerminalMenu { 
     
+    Logger logger = LoggerFactory.getLogger(TerminalMenu.class);
     // Array for all terminals and their info
     List<Terminal> terminals;
     // Array about terminal info from server
@@ -69,22 +73,27 @@ public class TerminalMenu {
     
     // For testing
     public void printTerminalsInfo(){
+        logger.info("Looping {} terminals.", terminals.size());
+        int i = 1;
         for (Terminal terminal : terminals) {
-            System.out.println("id " + terminal.getId());
-            System.out.println("ip " + terminal.getIpAddress());
-            System.out.println("mac " + terminal.getMacAddress());
-            System.out.println("name " + terminal.getName());
-            System.out.println("online " + terminal.getOnlineStatus());
-            System.out.println("task " + terminal.getTaskStatus());
-            System.out.println("volume " + terminal.getVolume());
+            logger.info("Terminal #{}.", i++);
+            logger.debug("id " + terminal.getId());
+            logger.debug("ip " + terminal.getIpAddress());
+            logger.debug("mac " + terminal.getMacAddress());
+            logger.debug("name " + terminal.getName());
+            logger.debug("online " + terminal.getOnlineStatus());
+            logger.debug("task " + terminal.getTaskStatus());
+            logger.debug("volume " + terminal.getVolume());
             //System.out.println("selected " + terminal.isOnUse());
-            System.out.println("user " + terminal.getCurrentUser());
+            logger.debug("user " + terminal.getCurrentUser());
             if(terminal.getTracklist() != null){
+                logger.info("Terminal has {} tracks.", terminal.getTracklist().length);
                 for(Track track : terminal.getTracklist()){
-                System.out.println("Track " + track.getName());
+                    logger.debug("Track " + track.getName());
                 }
             }
         }
+        logger.debug("-------------------------------------");
     }
     
     // Change volume of terminal
@@ -97,12 +106,13 @@ public class TerminalMenu {
         try{
             connection.getDataoutputStream().write(volumeChange, 0, volumeChange.length);
         }catch(Exception e){
-            System.out.println(e);
+            logger.error("Error in teminal volume change. ", e);
         }
         try{
             connection.getDataoutputStream().flush();
         }catch(Exception e){
-            System.out.println(e);
+            
+            logger.error("DataoutputStream flush error. ",e);
         }
     }
     
@@ -131,8 +141,7 @@ public class TerminalMenu {
         try {
             newTerminalInfoCount = connection.getBufferedInputStream().read(newTerminalInfo);
         } catch (Exception e) {
-            System.err.println("ReadNewTerminalInfo:");
-            e.printStackTrace();
+            logger.error("ReadNewTerminalInfo error. ", e);
         }
         byte[] terminalInfo = newTerminalInfo;
         terminalInfotoTerminalArray(terminalInfo);

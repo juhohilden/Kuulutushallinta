@@ -11,18 +11,22 @@ import java.net.DatagramSocket;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.List;;
 import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.UnsupportedAudioFileException;
 import javazoom.jl.converter.Converter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
  * @author Juho
  */
 public class Broadcast {
+    
+    Logger logger = LoggerFactory.getLogger(Broadcast.class);
     
     private boolean playSoundFile = false;
     private boolean playBroadcast = false;
@@ -58,19 +62,18 @@ public class Broadcast {
         // Create array about broadcast information for server
         byte[] broadCast;
         broadCast = byteArrayFillerForBroadcast(cmdid, terminal, username, udpSocket.getPort(), sampleRate);
+
         // Sending array to server
         try{
             connection.getDataoutputStream().write(broadCast, 0, broadCast.length);
         }catch(Exception e){
-            System.out.println(e);
-            System.out.println("Broadcast getDataOutputStream error: " + e);
+            logger.error("Broadcast getDataOutputStream error: ", e);
         }
         try{
             connection.getDataoutputStream().flush();
             terminalMenu.readNewTerminalInfo(connection);
         }catch(Exception e){
-            System.out.println(e);
-            System.out.println("Broadcast getDataOutputStream flush error: " + e);
+            logger.error("Broadcast getDataOutputStream flush error: ", e);
         }
            
     }
@@ -92,7 +95,7 @@ public class Broadcast {
                         try {
                             Thread.sleep(10);
                         } catch (Exception e) {
-                            System.out.println(e);
+                            logger.error("Thread sleep failed. ", e);
                         }
                         // Copying micreaders ByteArrayOutputStream to local outputstream
                         out = micRe.getOut();
@@ -111,12 +114,12 @@ public class Broadcast {
                                 try {
                                     d.send(packet);
                                 } catch (Exception e) {
-                                    System.out.println("Packet " + e);
+                                    logger.error("Failed to send packet. ", e);
                                 }
                                 try {
                                     Thread.sleep(10);
                                 } catch (Exception e) {
-                                    System.out.println(e);
+                                    logger.error("Thread sleep failed. ", e);
                                 }
                             }
                             // Closing the temorary streams
@@ -131,9 +134,9 @@ public class Broadcast {
                     micRe.stopReadMic();
                     
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    logger.error("Error in mic broadcast thread. ", e);
                 }
-                System.out.println("Broadcast Finished");
+                logger.debug("Broadcast Finished");
             }
         });
         s.start();
@@ -155,9 +158,10 @@ public class Broadcast {
                         AudioFormat format = tempStream.getFormat();
                         long frames = tempStream.getFrameLength();
                         durationInSeconds = (frames + 0.0) / format.getFrameRate() + 0.5;
-                        System.out.println("Sound file length in seconds: " + durationInSeconds);
+                        logger.debug("Sound file length in seconds: " + durationInSeconds);
                     } catch (UnsupportedAudioFileException | IOException ex) {
-                        Logger.getLogger(Broadcast.class.getName()).log(Level.SEVERE, null, ex);
+                        //Logger.getLogger(Broadcast.class.getName()).log(Level.SEVERE, null, ex);
+                        logger.error("Failed to read sound file to stream. ", ex);
                     }
                 }
                 byte[] buff = new byte[1024];
@@ -174,20 +178,22 @@ public class Broadcast {
                         try {
                             d.send(packet);
                         } catch (Exception e) {
-                            System.out.println("Packet " + e);
+                            logger.error("Failed to send packet.", e);
                         }
                         // Waiting a bit before trying send another packet
                         try {
                             Thread.sleep(20);
                         } catch (Exception e) {
-                            System.out.println(e);
+                            logger.error("Thread sleep error.",e);
                         }
                     }
+                    
                     tempStream.close();
                     if (listener != null) {
                         Thread.sleep(((long) durationInSeconds) * 1000L);
+                        logger.debug("Before stopBroadcast");
                         stopBroadcast();
-                        System.out.println("OnPagingComplete threadin sisällä");
+                        logger.debug("OnPagingComplete threadin sisällä");
                         listener.onPagingComplete();
                     }
                     //controller.stopBroadcast(ids);
@@ -295,13 +301,13 @@ public class Broadcast {
             try {
                 connection.getDataoutputStream().write(broadCastStopper, 0, broadCastStopper.length);
             } catch (Exception e) {
-                System.out.println(e);
+                logger.error("Stop broadcast strem write failed. ",e);
             }
             try {
                 connection.getDataoutputStream().flush();
                 terminalMenu.readNewTerminalInfo(connection);
             } catch (Exception e) {
-                System.out.println(e);
+                logger.error("Stop broadcast stream flush failed. ",e);
             }
             // Remove this given terminals from broadcast // Need to iterate another way since java.util.ConcurrentModificationException
             Iterator <Terminal> iterTerminal = terminal.iterator();
@@ -328,25 +334,34 @@ public class Broadcast {
     
     // Method for stopping broadcast manualy
     public void stopBroadcast(){
+        
+        logger.debug("==== Stop broadcast " + playSoundFile + " " + playBroadcast + " ====" );
         if (playSoundFile || playBroadcast) {
             // Command id for stoping broadcast
             int cmdid = 62;
             // Create array about stopping broadcast information for server
             byte[] broadCastStopper;
+            
+            logger.debug("==== byteArrayfillerwhatnot ====");
             broadCastStopper = byteArrayFillerForBroadcastStopper(cmdid, terminal, username);
             // Sending array to server
             try {
+                
+                logger.debug("==== writeStream ====");
                 connection.getDataoutputStream().write(broadCastStopper, 0, broadCastStopper.length);
             } catch (Exception e) {
                 System.out.println(e);
             }
             try {
                 connection.getDataoutputStream().flush();
+                logger.debug("==== ReadNewTerminalInfo ====");
                 terminalMenu.readNewTerminalInfo(connection);
+                logger.debug("==== removeAll ====");
             } catch (Exception e) {
-                System.out.println(e);
+                logger.error("Failed to read new terminal info.", e);
             }
             // Remove this given terminals from broadcast // Need to iterate another way since java.util.ConcurrentModificationException
+            
             terminal.removeAll(terminal);
             System.out.println("Broadcast use "+terminal.size()+" terminals");
             if(terminal.isEmpty()){

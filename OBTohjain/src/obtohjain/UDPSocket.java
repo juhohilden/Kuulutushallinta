@@ -2,12 +2,16 @@ package obtohjain;
 
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
  * @author Juho
  */
 public class UDPSocket{
+    
+    Logger logger = LoggerFactory.getLogger(UDPSocket.class);
     
     private DatagramSocket udpSocket;
     private int port;
@@ -22,7 +26,7 @@ public class UDPSocket{
             udpSocket.setBroadcast(true);
             bCast = InetAddress.getByName("255.255.255.255");
         }catch(Exception e){
-            System.out.println("InitializeUDPSocket error: " + e);
+            logger.error("Failed creating UDP socket. ",e);
         }
     }
     

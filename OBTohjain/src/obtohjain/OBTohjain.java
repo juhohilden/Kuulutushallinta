@@ -26,22 +26,14 @@ public class OBTohjain {
         */
         Logger logger = LoggerFactory.getLogger(OBTohjain.class);
         
-        logger.debug("Testiloggaus");
-        logger.error("Error testaus");
-
-        Controller controller = new Controller();
-        controller.createConnection("192.168.2.233");
-        controller.login("t", "t");
-        controller.createTerminalMenu();
+        
+//
+//        final Controller controller = new Controller();
+//        controller.createConnection("192.168.2.233");
+//        controller.login("t", "t");
+//        controller.createTerminalMenu();
         //controller.tulosta();
 
-        //controller.setChangeActiveState(102);
-        //controller.setChangeActiveState(111);
-
-        //controller.setChangeActiveState(9);
-        
-        //controller.setChangeActiveState(2);
-        //controller.setChangeActiveState(3);
         
 
         
@@ -56,11 +48,65 @@ public class OBTohjain {
        
         //controller.playFile("Bitlips-test.wav", i);
         
-        List<Terminal> terminals = new ArrayList<Terminal>();
         //terminals.add(new Terminal(87));
-        terminals.add(new Terminal(9));
-        //controller.playFile("test.wav", j);
-        controller.playFile("Bitlips-test.wav", terminals);
+        
+        String address = "192.168.2.233";
+        String username = "admin";
+        String password = "admin";
+        List<Terminal> terminals = new ArrayList<Terminal>();
+        //int[] ids = new int[args.length-3];
+        if(args.length > 3) {
+            address = args[0];
+            username = args[1];
+            password = args[2];
+            for(int i = 3; i < args.length; i++) {
+                //terminals.add(new Terminal(Integer.parseInt(args[i])));
+                //ids[i-3] = Integer.parseInt(args[i]);
+            }
+        }
+
+        Controller controller = new Controller();
+        controller.createConnection(address);
+        controller.login(username, password);
+        controller.createTerminalMenu();
+        
+        for(Terminal t : controller.getTerminals()){
+            logger.debug("Terminal id: " + t.getId());
+        }
+
+        controller.playFile("Bitlips-test.wav", controller.getTerminals());
+                
+                 
+        
+//        
+//        Thread s = new Thread(new Runnable() {
+//            @Override
+//            public void run() {
+//                
+//                List<Terminal> terminals = new ArrayList<Terminal>();
+//                terminals.add(new Terminal(9));
+//                controller.playFile("Bitlips-test.wav", terminals);
+//            }
+//        });
+//        
+//        Thread x = new Thread(new Runnable() {
+//            @Override
+//            public void run() {
+//                
+//                List<Terminal> terminals = new ArrayList<Terminal>();
+//                terminals.add(new Terminal(87));
+//                controller.playFile("Bitlips-test.wav", terminals);
+//            }
+//        });
+//        
+//        x.start();
+//        try {
+//            Thread.sleep(1500);
+//        } catch (Exception e) {
+//        }
+//        s.start();
+        
+        //controller.playFile("test.wav", j);;
         
         //controller.playFile(name, i);
         /*try {
