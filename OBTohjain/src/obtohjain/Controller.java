@@ -25,7 +25,7 @@ public class Controller implements Broadcast.OnPagingCompleteListener  {
     private MicReader micReader=null;
     private String username;
     private File currentFile=null;
-    TerminalInfoListener terminalInfoListener;
+    private TerminalInfoListener terminalInfoListener;
     private TrackMenu trackMenu=null;
     private OnBroadcastComplete listener;
     private List<Broadcast> broadcasts;
@@ -178,9 +178,6 @@ public class Controller implements Broadcast.OnPagingCompleteListener  {
         // Trying to read and assigne trackinfo to all given terminals // Sometimes only first command send
         for (int i = 0; i < terminals.size(); i++) {
             trackMenu.getTrackListFromTerminals(connection, terminals.get(i).getId());
-        }
-        for(int i = 0; i < terminals.size(); i++){
-            terminalMenu.setTracklist(terminals.get(i).getId(), trackMenu.getTracklist());
         }
     }
     
@@ -434,7 +431,7 @@ public class Controller implements Broadcast.OnPagingCompleteListener  {
                     terminalMenu.printTerminalsInfo();
                 }else if(newInfo[0] == 50 &&  trackMenu != null ){
                     System.out.println("New terminal tracks read");
-                    trackMenu.terminalsTracksToInfoArray(newInfo);
+                    trackMenu.terminalsTracksToInfoArray(newInfo, terminalMenu);
                     trackMenu.printTracks();
                 }
                 else if(newInfo[0] == 48 &&  trackMenu != null ){

@@ -112,4 +112,27 @@ public class Terminal {
         return currentUser;
     }
     
+    public boolean equals(Terminal terminal){
+        if(id != terminal.id){
+            return false;
+        }else if(volume != terminal.volume){
+            return false;
+        }else if(onlineStatus != terminal.onlineStatus){
+            return false;
+        }else if(macAddress.equals(terminal.macAddress)){
+            return false;
+        }else if(ipAddress.equals(terminal.ipAddress)){
+            return false;
+        }else if(name.equals(terminal.name)){
+            return false;
+        }else if(taskStatus != terminal.taskStatus){
+            return false;
+        }else if(trackList.equals(terminal.trackList)){
+            return false;
+        }else if(currentUser.equals(terminal.currentUser)){
+            return false;
+        }
+        return true;
+    }
+    
 }

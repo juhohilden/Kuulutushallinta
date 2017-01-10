@@ -17,12 +17,14 @@ public class TrackMenu {
     // Only server can send music to terminals but its not show on mesages?
     // When getting tracks from server the path to music directory need to be set on server
     private Track[] trackList = null;
+    private int lastId;
 
     public Track[] getTracklist() {
         return trackList;
     }
 
     public void getTrackListFromTerminals(Connection connection, int id) {
+        lastId = id;
         // Command id for getting terminals tracklist
         int cmdid = 50;
         // Create byte array for getting terminals tracks
@@ -85,13 +87,12 @@ public class TrackMenu {
                 trackInfoLenght = trackInfoLenght + trackNameLenght + 12;
             }
         }else{
-<<<<<<< HEAD
             System.out.println("Is not terminal information");
         }*/
-        logger.debug("Is not terminal information");
+        //logger.debug("Is not terminal information");
     }
 
-    public void terminalsTracksToInfoArray(byte[] newTerminalTracks) {
+    public void terminalsTracksToInfoArray(byte[] newTerminalTracks, TerminalMenu terminalMenu) {
         // Initializing tracklist
         trackList = new Track[newTerminalTracks[1]];
         int trackInfoLenght = 0;
@@ -127,6 +128,7 @@ public class TrackMenu {
             // Getting the count of already used data
             trackInfoLenght = trackInfoLenght + trackNameLenght + 12;
         }
+        terminalMenu.setTracklist(lastId, trackList);
     }
 
     // Get servers tracklist
@@ -260,15 +262,6 @@ public class TrackMenu {
             connection.getDataoutputStream().flush();
         } catch (Exception e) {
             e.printStackTrace();
-        }
-        // Initializing array for new terminal track information
-        byte[] newTerminalInfo = new byte[1024];
-        int newTerminalInfoCount = 0;
-        // Getting the terminals tracks information from server
-        try {
-            newTerminalInfoCount = connection.getBufferedInputStream().read(newTerminalInfo);
-        } catch (Exception e) {
-            logger.error("Failed getting terminals tracks. ", e);
         }
     }
 
