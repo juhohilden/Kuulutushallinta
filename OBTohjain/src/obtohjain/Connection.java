@@ -37,7 +37,7 @@ public class Connection {
             out = new DataOutputStream(socket.getOutputStream());
             ins = new BufferedInputStream(socket.getInputStream());
             for(int i = 0; i < udpSockets.length; i++){
-                udpSockets[i] = new UDPSocket(13000 + i);
+                udpSockets[i] = new UDPSocket(13000 + i, ip);
             }
     }    
     

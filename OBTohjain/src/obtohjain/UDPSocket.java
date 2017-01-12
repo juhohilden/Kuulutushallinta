@@ -18,13 +18,16 @@ public class UDPSocket{
     private InetAddress bCast;
     private boolean onUse;
     
-    public UDPSocket(int port){
+    public UDPSocket(int port, String ip){
         this.port = port;
         onUse = false;
         try{
             udpSocket = new DatagramSocket();//port // work with ports between 13000 - 15000 atleast those work
             udpSocket.setBroadcast(true);
-            bCast = InetAddress.getByName("255.255.255.255");
+            String[] ipParts = ip.split("\\.");
+            String broadcastIP = ipParts[0]+"."+ipParts[1]+"."+ipParts[2]+"."+"255";
+            System.out.println("Broadcast IP "+broadcastIP);
+            bCast = InetAddress.getByName(broadcastIP);
         }catch(Exception e){
             logger.error("Failed creating UDP socket. ",e);
         }
